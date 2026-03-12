@@ -1,0 +1,69 @@
+import axios from 'axios';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+export const api = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    // Only auto-logout on 401 if it's NOT the login endpoint
+    const isLoginEndpoint = err.config?.url?.includes('/auth/login');
+    if (err.response?.status === 401 && !isLoginEndpoint) {
+      localStorage.removeItem('access_token');
+      window.location.href = '/';
+    }
+    return Promise.reject(err);
+  }
+);
+
+export const authApi = {
+  login: (email: string, password: string) =>
+    api.post('/api/v1/auth/login', { email, password }).then(r => r.data),
+  me: () => api.get('/api/v1/auth/me').then(r => r.data),
+};
+
+export const projectsApi = {
+  getAll: () => api.get('/api/v1/projects').then(r => r.data),
+  getTasks: (projectId: string) => api.get(`/api/v1/tasks?projectId=${projectId}`).then(r => r.data),
+};
+
+export const tasksApi = {
+  create:    (data: any)              => api.post('/api/v1/tasks', data).then(r => r.data),
+  update:    (id: string, data: any)  => api.put(`/api/v1/tasks/${id}`, data).then(r => r.data),
+  getAll:    (projectId?: string)     => api.get('/api/v1/tasks', { params: projectId ? { projectId } : {} }).then(r => r.data),
+  getActive: (projectId?: string)     => api.get('/api/v1/tasks', { params: { ...(projectId ? { projectId } : {}), activeOnly: 'true' } }).then(r => r.data),
+  getOne:    (id: string)             => api.get(`/api/v1/tasks/${id}`).then(r => r.data),
+};
+
+export const assignmentsApi = {
+  create: (data: any) => api.post('/api/v1/assignments', data).then(r => r.data),
+  getAll: ()          => api.get('/api/v1/assignments').then(r => r.data),
+};
+
+export const timesheetsApi = {
+  save:      (data: any)                   => api.post('/api/v1/timesheets', data).then(r => r.data),
+  submit:    (id: string)                  => api.put(`/api/v1/timesheets/${id}/submit`).then(r => r.data),
+  approve:   (id: string)                  => api.put(`/api/v1/timesheets/${id}/approve`).then(r => r.data),
+  reject:    (id: string, reason?: string) => api.put(`/api/v1/timesheets/${id}/reject`, { reason }).then(r => r.data),
+  getAll:    ()                            => api.get('/api/v1/timesheets').then(r => r.data),
+  getPending:()                            => api.get('/api/v1/timesheets/pending').then(r => r.data),
+  getMyWeek: (weekStartDate: string)       => api.get('/api/v1/timesheets/week', { params: { weekStartDate } }).then(r => r.data),
+};
+
+export const usersApi = {
+  getAll: () => api.get('/api/v1/users').then(r => r.data),
+};
+
+export const dashboardApi = {
+  getStats: () => api.get('/api/v1/dashboard/stats').then(r => r.data),
+};
