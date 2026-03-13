@@ -8,6 +8,8 @@ import { AssignmentsModule } from './modules/assignments/assignments.module';
 import { TimesheetsModule } from './modules/timesheets/timesheets.module';
 import { UsersModule } from './modules/users/users.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ProjectConfigModule } from './modules/project-config/project-config.module';
+import { EmployeeConfigModule } from './modules/employee-config/employee-config.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     TimesheetsModule,
     UsersModule,
     DashboardModule,
+    ProjectConfigModule,
+    EmployeeConfigModule,
   ],
 })
 export class AppModule {}

@@ -57,6 +57,8 @@ export const ModelName = {
   Task: 'Task',
   TaskAssignment: 'TaskAssignment',
   Timesheet: 'Timesheet',
+  ProjectConfig: 'ProjectConfig',
+  TaskNameConfig: 'TaskNameConfig',
   TimesheetEntry: 'TimesheetEntry'
 } as const
 
@@ -132,6 +134,7 @@ export const TaskScalarFieldEnum = {
   endDate: 'endDate',
   billable: 'billable',
   status: 'status',
+  creationStatus: 'creationStatus',
   createdById: 'createdById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -174,6 +177,31 @@ export const TimesheetScalarFieldEnum = {
 } as const
 
 export type TimesheetScalarFieldEnum = (typeof TimesheetScalarFieldEnum)[keyof typeof TimesheetScalarFieldEnum]
+
+
+export const ProjectConfigScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  client: 'client',
+  description: 'description',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectConfigScalarFieldEnum = (typeof ProjectConfigScalarFieldEnum)[keyof typeof ProjectConfigScalarFieldEnum]
+
+
+export const TaskNameConfigScalarFieldEnum = {
+  id: 'id',
+  projectConfigId: 'projectConfigId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt'
+} as const
+
+export type TaskNameConfigScalarFieldEnum = (typeof TaskNameConfigScalarFieldEnum)[keyof typeof TaskNameConfigScalarFieldEnum]
 
 
 export const TimesheetEntryScalarFieldEnum = {

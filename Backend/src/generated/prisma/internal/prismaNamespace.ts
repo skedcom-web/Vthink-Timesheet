@@ -390,6 +390,8 @@ export const ModelName = {
   Task: 'Task',
   TaskAssignment: 'TaskAssignment',
   Timesheet: 'Timesheet',
+  ProjectConfig: 'ProjectConfig',
+  TaskNameConfig: 'TaskNameConfig',
   TimesheetEntry: 'TimesheetEntry'
 } as const
 
@@ -406,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "refreshToken" | "project" | "task" | "taskAssignment" | "timesheet" | "timesheetEntry"
+    modelProps: "user" | "refreshToken" | "project" | "task" | "taskAssignment" | "timesheet" | "projectConfig" | "taskNameConfig" | "timesheetEntry"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -854,6 +856,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProjectConfig: {
+      payload: Prisma.$ProjectConfigPayload<ExtArgs>
+      fields: Prisma.ProjectConfigFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectConfigFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectConfigFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectConfigFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectConfigFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectConfigFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectConfigCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectConfigCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectConfigCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectConfigDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>
+        }
+        update: {
+          args: Prisma.ProjectConfigUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectConfigDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectConfigUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectConfigUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectConfigUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectConfigPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectConfigAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectConfig>
+        }
+        groupBy: {
+          args: Prisma.ProjectConfigGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectConfigGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectConfigCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectConfigCountAggregateOutputType> | number
+        }
+      }
+    }
+    TaskNameConfig: {
+      payload: Prisma.$TaskNameConfigPayload<ExtArgs>
+      fields: Prisma.TaskNameConfigFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TaskNameConfigFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TaskNameConfigFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>
+        }
+        findFirst: {
+          args: Prisma.TaskNameConfigFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TaskNameConfigFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>
+        }
+        findMany: {
+          args: Prisma.TaskNameConfigFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>[]
+        }
+        create: {
+          args: Prisma.TaskNameConfigCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>
+        }
+        createMany: {
+          args: Prisma.TaskNameConfigCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TaskNameConfigCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>[]
+        }
+        delete: {
+          args: Prisma.TaskNameConfigDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>
+        }
+        update: {
+          args: Prisma.TaskNameConfigUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>
+        }
+        deleteMany: {
+          args: Prisma.TaskNameConfigDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TaskNameConfigUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TaskNameConfigUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>[]
+        }
+        upsert: {
+          args: Prisma.TaskNameConfigUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskNameConfigPayload>
+        }
+        aggregate: {
+          args: Prisma.TaskNameConfigAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTaskNameConfig>
+        }
+        groupBy: {
+          args: Prisma.TaskNameConfigGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskNameConfigGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TaskNameConfigCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskNameConfigCountAggregateOutputType> | number
+        }
+      }
+    }
     TimesheetEntry: {
       payload: Prisma.$TimesheetEntryPayload<ExtArgs>
       fields: Prisma.TimesheetEntryFieldRefs
@@ -1023,6 +1173,7 @@ export const TaskScalarFieldEnum = {
   endDate: 'endDate',
   billable: 'billable',
   status: 'status',
+  creationStatus: 'creationStatus',
   createdById: 'createdById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1065,6 +1216,31 @@ export const TimesheetScalarFieldEnum = {
 } as const
 
 export type TimesheetScalarFieldEnum = (typeof TimesheetScalarFieldEnum)[keyof typeof TimesheetScalarFieldEnum]
+
+
+export const ProjectConfigScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  client: 'client',
+  description: 'description',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectConfigScalarFieldEnum = (typeof ProjectConfigScalarFieldEnum)[keyof typeof ProjectConfigScalarFieldEnum]
+
+
+export const TaskNameConfigScalarFieldEnum = {
+  id: 'id',
+  projectConfigId: 'projectConfigId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt'
+} as const
+
+export type TaskNameConfigScalarFieldEnum = (typeof TaskNameConfigScalarFieldEnum)[keyof typeof TaskNameConfigScalarFieldEnum]
 
 
 export const TimesheetEntryScalarFieldEnum = {
@@ -1393,6 +1569,8 @@ export type GlobalOmitConfig = {
   task?: Prisma.TaskOmit
   taskAssignment?: Prisma.TaskAssignmentOmit
   timesheet?: Prisma.TimesheetOmit
+  projectConfig?: Prisma.ProjectConfigOmit
+  taskNameConfig?: Prisma.TaskNameConfigOmit
   timesheetEntry?: Prisma.TimesheetEntryOmit
 }
 

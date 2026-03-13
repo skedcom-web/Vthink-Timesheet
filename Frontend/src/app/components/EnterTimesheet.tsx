@@ -17,7 +17,7 @@ function fmt(d: Date) { return d.toLocaleDateString('en-GB', { day: '2-digit', m
 
 interface Entry { projectId: string; taskId: string; tasks: any[]; hours: Record<string, number>; }
 
-export default function EnterTimesheet({ onBack }: { onBack: () => void }) {
+export default function EnterTimesheet({ onBack, onDataChanged }: { onBack: () => void; onDataChanged?: () => void }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [projects, setProjects]     = useState<any[]>([]);
   const [entries, setEntries]       = useState<Entry[]>([{ projectId: '', taskId: '', tasks: [], hours: {} }]);
@@ -86,6 +86,7 @@ export default function EnterTimesheet({ onBack }: { onBack: () => void }) {
       const ts = await timesheetsApi.save(payload());
       setSavedId(ts.id);
       toast.success('Timesheet saved as draft');
+      onDataChanged?.();
     } catch (err: any) {
       toast.error(err?.response?.data?.error?.message || 'Failed to save');
     } finally { setLoading(false); }
@@ -97,6 +98,7 @@ export default function EnterTimesheet({ onBack }: { onBack: () => void }) {
     try {
       await timesheetsApi.submit(savedId);
       toast.success('Timesheet submitted for approval!');
+      onDataChanged?.();
       setSavedId(null);
     } catch (err: any) {
       toast.error(err?.response?.data?.error?.message || 'Failed to submit');

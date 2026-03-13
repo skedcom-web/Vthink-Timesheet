@@ -48,6 +48,16 @@ export type TaskAssignment = Prisma.TaskAssignmentModel
  */
 export type Timesheet = Prisma.TimesheetModel
 /**
+ * Model ProjectConfig
+ * 
+ */
+export type ProjectConfig = Prisma.ProjectConfigModel
+/**
+ * Model TaskNameConfig
+ * 
+ */
+export type TaskNameConfig = Prisma.TaskNameConfigModel
+/**
  * Model TimesheetEntry
  * 
  */

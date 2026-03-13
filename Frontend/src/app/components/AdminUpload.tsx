@@ -1,0 +1,340 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  ArrowLeft, Upload, FileSpreadsheet, CheckCircle2, AlertCircle,
+  RefreshCw, Loader2, CloudUpload, X, Building2, Users, Briefcase, Tag,
+} from 'lucide-react';
+import { projectConfigApi, employeeConfigApi, projectConfigSummaryApi } from '../../services/api';
+import { toast } from './ui/Toast';
+
+type UploadState = 'idle' | 'uploading' | 'success' | 'error';
+
+interface ProjectSummary  { totalProjects: number; totalTaskNames: number; }
+interface EmployeeSummary { total: number; byDesignation: { designation: string; count: number }[]; }
+
+// ── Reusable upload card ──────────────────────────────────────────────────────
+function UploadCard({
+  title, subtitle, hint,
+  onUpload,
+}: {
+  title:    string;
+  subtitle: string;
+  hint:     React.ReactNode;
+  onUpload: (file: File) => Promise<string>; // returns success message
+}) {
+  const [uploadState,  setUploadState]  = useState<UploadState>('idle');
+  const [uploadMsg,    setUploadMsg]    = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [dragOver,     setDragOver]     = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const onFileSelect = (file: File | null) => {
+    if (!file) return;
+    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+      toast.error('Please select an Excel file (.xlsx or .xls)');
+      return;
+    }
+    setSelectedFile(file);
+    setUploadState('idle');
+    setUploadMsg('');
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) { toast.error('Please select a file first'); return; }
+    setUploadState('uploading');
+    setUploadMsg('');
+    try {
+      const msg = await onUpload(selectedFile);
+      setUploadState('success');
+      setUploadMsg(msg);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (e: any) {
+      const msg = e?.response?.data?.message ||
+                  e?.response?.data?.error?.message ||
+                  e?.message || 'Upload failed';
+      setUploadState('error');
+      setUploadMsg(msg);
+      toast.error(msg);
+    }
+  };
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6">
+      <div className="flex items-center gap-2 mb-1">
+        <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+        <h2 className="text-base font-semibold text-slate-800">{title}</h2>
+      </div>
+      <p className="text-sm text-slate-500 mb-4">{subtitle}</p>
+
+      {/* Format hint */}
+      <div className="mb-4 p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-xs text-indigo-700">
+        {hint}
+      </div>
+
+      {/* Drop zone */}
+      <div
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={e => { e.preventDefault(); setDragOver(false); onFileSelect(e.dataTransfer.files?.[0] ?? null); }}
+        onClick={() => fileInputRef.current?.click()}
+        className="relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all mb-4"
+        style={{
+          borderColor: dragOver ? '#6366F1' : selectedFile ? '#A5B4FC' : '#CBD5E1',
+          background:  dragOver ? '#EEF2FF' : selectedFile ? '#F5F3FF' : '#F8FAFC',
+        }}
+      >
+        <input
+          ref={fileInputRef} type="file" accept=".xlsx,.xls"
+          onChange={e => onFileSelect(e.target.files?.[0] ?? null)}
+          className="hidden"
+        />
+        {selectedFile ? (
+          <div className="flex flex-col items-center gap-2">
+            <FileSpreadsheet className="w-8 h-8 text-indigo-500" />
+            <p className="text-sm font-semibold text-slate-800">{selectedFile.name}</p>
+            <p className="text-xs text-slate-400">{(selectedFile.size / 1024).toFixed(1)} KB · Click to change</p>
+            <button
+              onClick={e => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+              className="absolute top-2 right-2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <CloudUpload className="w-8 h-8 text-slate-300" />
+            <p className="text-sm font-medium text-slate-600">
+              <span className="text-indigo-600 font-semibold">Click to browse</span> or drag & drop
+            </p>
+            <p className="text-xs text-slate-400">.xlsx or .xls · Max 10 MB</p>
+          </div>
+        )}
+      </div>
+
+      <button
+        onClick={handleUpload}
+        disabled={!selectedFile || uploadState === 'uploading'}
+        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ background: selectedFile ? '#4F46E5' : '#94A3B8' }}
+      >
+        {uploadState === 'uploading'
+          ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+          : <><Upload className="w-4 h-4" /> Upload & Import</>}
+      </button>
+
+      {uploadState === 'success' && (
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{uploadMsg}</span>
+        </div>
+      )}
+      {uploadState === 'error' && (
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{uploadMsg}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Admin Upload page ────────────────────────────────────────────────────
+export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => void; onDataChanged?: () => void }) {
+  const [projSummary,    setProjSummary]    = useState<ProjectSummary  | null>(null);
+  const [empSummary,     setEmpSummary]     = useState<EmployeeSummary | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+
+  const fetchSummaries = useCallback(async () => {
+    setLoadingSummary(true);
+    try {
+      const [p, e] = await Promise.allSettled([
+        projectConfigSummaryApi.getSummary(),
+        employeeConfigApi.getSummary(),
+      ]);
+      if (p.status === 'fulfilled') setProjSummary(p.value);
+      if (e.status === 'fulfilled') setEmpSummary(e.value);
+    } finally {
+      setLoadingSummary(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchSummaries(); }, [fetchSummaries]);
+
+  // ── Upload handlers — return the success message string ──────────────────────
+  const handleProjectUpload = async (file: File): Promise<string> => {
+    const res = await projectConfigApi.upload(file);
+    const msg = res.message || `Imported ${res.projects} project(s) and ${res.taskNames} task name(s)`;
+    toast.success(msg);
+    onDataChanged?.();
+    // Refresh summaries immediately after upload
+    await fetchSummaries();
+    return msg;
+  };
+
+  const handleEmployeeUpload = async (file: File): Promise<string> => {
+    const res = await employeeConfigApi.upload(file);
+    const msg = res.message || `Imported ${res.employees} employee(s)`;
+    toast.success(msg);
+    onDataChanged?.();
+    // Refresh summaries immediately after upload
+    await fetchSummaries();
+    return msg;
+  };
+
+  return (
+    <div className="p-6 max-w-5xl space-y-8">
+      {/* Back */}
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+        <ArrowLeft className="w-4 h-4" /> Back to Overview
+      </button>
+
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Admin — Data Uploads</h1>
+        <p className="text-slate-500 text-sm">Upload Excel files to populate projects, task names and employee records across the application.</p>
+      </div>
+
+      {/* ── Summary Cards ─────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        {/* Projects summary */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Imported Projects</p>
+                <p className="text-xs text-slate-400">via Project Addition Upload</p>
+              </div>
+            </div>
+            <button
+              onClick={fetchSummaries}
+              disabled={loadingSummary}
+              title="Refresh"
+              className="text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-40"
+            >
+              <RefreshCw className={`w-4 h-4 ${loadingSummary ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+
+          {loadingSummary && !projSummary ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+            </div>
+          ) : projSummary && (projSummary.totalProjects > 0 || projSummary.totalTaskNames > 0) ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-indigo-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-indigo-700">{projSummary.totalProjects}</p>
+                <p className="text-xs text-indigo-500 mt-0.5 flex items-center justify-center gap-1">
+                  <Building2 className="w-3 h-3" /> Projects
+                </p>
+              </div>
+              <div className="bg-violet-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-violet-700">{projSummary.totalTaskNames}</p>
+                <p className="text-xs text-violet-500 mt-0.5 flex items-center justify-center gap-1">
+                  <Tag className="w-3 h-3" /> Task Names
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-slate-400 gap-1">
+              <Building2 className="w-8 h-8 text-slate-200" />
+              <p className="text-sm">No projects uploaded yet</p>
+              <p className="text-xs">Upload a file below to get started</p>
+            </div>
+          )}
+        </div>
+
+        {/* Employees summary */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <Users className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Imported Employees</p>
+                <p className="text-xs text-slate-400">via Employee Addition Upload</p>
+              </div>
+            </div>
+          </div>
+
+          {loadingSummary && !empSummary ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+            </div>
+          ) : empSummary && empSummary.total > 0 ? (
+            <div className="space-y-3">
+              {/* Total */}
+              <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-emerald-700">{empSummary.total}</p>
+                <p className="text-xs text-emerald-500 mt-0.5 flex items-center justify-center gap-1">
+                  <Users className="w-3 h-3" /> Total Employees
+                </p>
+              </div>
+              {/* Designation breakdown */}
+              {empSummary.byDesignation.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">By Designation</p>
+                  <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                    {empSummary.byDesignation.map(d => (
+                      <div key={d.designation} className="flex items-center justify-between gap-2 group">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Briefcase className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="text-xs text-slate-600 truncate">{d.designation}</span>
+                        </div>
+                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                          {d.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-slate-400 gap-1">
+              <Users className="w-8 h-8 text-slate-200" />
+              <p className="text-sm">No employees uploaded yet</p>
+              <p className="text-xs">Upload a file below to get started</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Project Addition Upload ─────────────────────────────────────────────── */}
+      <UploadCard
+        title="Project Addition Upload"
+        subtitle="Upload an Excel file to populate the Project and Task Name lists used across the application."
+        hint={
+          <>
+            <strong>Expected columns:</strong>&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Project Name</span>&nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Client</span>&nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Description</span>&nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Task Types</span>
+            &nbsp;(pipe-separated: <em>Task A | Task B | Task C</em>)
+          </>
+        }
+        onUpload={handleProjectUpload}
+      />
+
+      {/* ── Employee Addition Upload ────────────────────────────────────────────── */}
+      <UploadCard
+        title="Employee Addition Upload"
+        subtitle="Upload an Excel file to populate the Employee list used in the Assign Task workflow."
+        hint={
+          <>
+            <strong>Expected columns:</strong>&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Number</span>&nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Name</span>&nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Designation</span>&nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Email</span>
+          </>
+        }
+        onUpload={handleEmployeeUpload}
+      />
+    </div>
+  );
+}

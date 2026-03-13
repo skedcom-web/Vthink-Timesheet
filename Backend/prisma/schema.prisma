@@ -127,10 +127,11 @@ model Task {
   startDate   DateTime?
   endDate     DateTime?
   billable    Boolean      @default(true)
-  status      TaskStatus   @default(ACTIVE)
-  createdById String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  status          TaskStatus   @default(ACTIVE)
+  creationStatus  String       @default("ON_TIME_CREATION")
+  createdById     String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   project          Project          @relation(fields: [projectId], references: [id])
   createdBy        User             @relation("TaskCreatedBy", fields: [createdById], references: [id])
@@ -188,6 +189,37 @@ model Timesheet {
   @@index([status])
   @@index([weekStartDate])
   @@map("timesheets")
+}
+
+// ── Admin-uploaded project/task config ────────────────────────────────────────
+model ProjectConfig {
+  id          String   @id @default(uuid())
+  code        String   @unique   // e.g. "ACRT"
+  name        String             // e.g. "ACRT"
+  client      String?
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  taskNames   TaskNameConfig[]
+
+  @@index([active])
+  @@map("project_configs")
+}
+
+model TaskNameConfig {
+  id              String        @id @default(uuid())
+  projectConfigId String
+  name            String        // e.g. "Pipeline Development"
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
+
+  @@unique([projectConfigId, name])
+  @@index([projectConfigId])
+  @@map("task_name_configs")
 }
 
 model TimesheetEntry {

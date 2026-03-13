@@ -10,7 +10,7 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export default function ApproveTimesheet({ onBack }: { onBack: () => void }) {
+export default function ApproveTimesheet({ onBack, onDataChanged }: { onBack: () => void; onDataChanged?: () => void }) {
   const [timesheets, setTimesheets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
@@ -33,6 +33,7 @@ export default function ApproveTimesheet({ onBack }: { onBack: () => void }) {
     try {
       await timesheetsApi.approve(id);
       toast.success('Timesheet approved');
+      onDataChanged?.();
       setTimesheets(prev => prev.filter(t => t.id !== id));
       if (viewTs?.id === id) setViewTs(null);
     } catch (e: any) {
@@ -46,6 +47,7 @@ export default function ApproveTimesheet({ onBack }: { onBack: () => void }) {
     try {
       await timesheetsApi.reject(rejectId, rejectReason);
       toast.success('Timesheet rejected');
+      onDataChanged?.();
       setTimesheets(prev => prev.filter(t => t.id !== rejectId));
       if (viewTs?.id === rejectId) setViewTs(null);
       setRejectId(null);
