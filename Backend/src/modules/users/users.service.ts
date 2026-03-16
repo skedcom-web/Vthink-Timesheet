@@ -17,7 +17,6 @@ export class UsersService implements OnModuleInit {
     private mailer: MailerService,
   ) {}
 
-  // ── Ensure new columns exist on users table ──────────────────────────────────
   async onModuleInit() {
     try {
       await this.prisma.$executeRawUnsafe(`
@@ -32,7 +31,6 @@ export class UsersService implements OnModuleInit {
     }
   }
 
-  // ── Generate a readable temp password: 4 uppercase + 4 digits + 2 special ────
   private generateTempPassword(): string {
     const upper   = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     const lower   = 'abcdefghjkmnpqrstuvwxyz';
@@ -41,7 +39,6 @@ export class UsersService implements OnModuleInit {
     const rand    = (s: string) => s[crypto.randomInt(s.length)];
     const parts   = [rand(upper), rand(upper), rand(lower), rand(lower),
                      rand(digits), rand(digits), rand(special), rand(special)];
-    // Shuffle
     for (let i = parts.length - 1; i > 0; i--) {
       const j = crypto.randomInt(i + 1);
       [parts[i], parts[j]] = [parts[j], parts[i]];
@@ -49,25 +46,43 @@ export class UsersService implements OnModuleInit {
     return parts.join('');
   }
 
-  // ── Create user ──────────────────────────────────────────────────────────────
+  // ── Role hierarchy rules ────────────────────────────────────────────────────
+  // SUPER_ADMIN     → can create: COMPANY_ADMIN, PROJECT_MANAGER, TEAM_MEMBER
+  // COMPANY_ADMIN   → can create: PROJECT_MANAGER, TEAM_MEMBER
+  // PROJECT_MANAGER → can create: TEAM_MEMBER only
+  private canCreateRole(actorRole: string, targetRole: string): boolean {
+    const hierarchy: Record<string, string[]> = {
+      SUPER_ADMIN:     ['COMPANY_ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER'],
+      COMPANY_ADMIN:   ['PROJECT_MANAGER', 'TEAM_MEMBER'],
+      PROJECT_MANAGER: ['TEAM_MEMBER'],
+      TEAM_MEMBER:     [],
+    };
+    return (hierarchy[actorRole] || []).includes(targetRole);
+  }
+
+  // ── Create user ─────────────────────────────────────────────────────────────
   async createUser(dto: CreateUserDto, createdBy: { id: string; role: string }) {
-    // Only SA can create CA; SA+CA can create PM+Employee
-    if (dto.role === 'COMPANY_ADMIN' && createdBy.role !== 'SUPER_ADMIN') {
-      throw new ForbiddenException('Only Super Admin can create Company Admin accounts');
+    if (!this.canCreateRole(createdBy.role, dto.role)) {
+      throw new ForbiddenException(
+        `A ${createdBy.role.replace('_', ' ')} cannot create a ${dto.role.replace('_', ' ')} account`,
+      );
     }
 
-    // Check duplicates
-    const existingEmail = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const existingEmail = await this.prisma.user.findFirst({
+      where: { email: { equals: dto.email, mode: 'insensitive' } },
+    });
     if (existingEmail) throw new ConflictException('Email already in use');
 
     if (dto.employeeId) {
-      const existingEmp = await this.prisma.user.findUnique({ where: { employeeId: dto.employeeId } });
+      const existingEmp = await this.prisma.user.findFirst({
+        where: { employeeId: { equals: dto.employeeId, mode: 'insensitive' } },
+      });
       if (existingEmp) throw new ConflictException('Employee ID already in use');
     }
 
     const tempPassword = this.generateTempPassword();
     const passwordHash = await bcrypt.hash(tempPassword, 12);
-    const expiry       = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const expiry       = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const user = await this.prisma.user.create({
       data: {
@@ -85,7 +100,6 @@ export class UsersService implements OnModuleInit {
       select: { id: true, name: true, email: true, role: true, employeeId: true, department: true, active: true, mustChangePassword: true },
     });
 
-    // Send welcome email (non-blocking)
     this.mailer.sendWelcomeEmail({
       to:            dto.email,
       name:          dto.name,
@@ -95,13 +109,22 @@ export class UsersService implements OnModuleInit {
       customMessage: dto.customEmailMessage,
     }).catch(() => {});
 
-    // Return tempPassword so admin can see it on screen too
     return { ...user, tempPassword };
   }
 
-  // ── List all users ───────────────────────────────────────────────────────────
-  async listUsers() {
+  // ── List users — scoped by role ─────────────────────────────────────────────
+  async listUsers(actorRole: string) {
+    // Each role only sees users they can manage (below them in hierarchy)
+    const visibleRoles: Record<string, string[]> = {
+      SUPER_ADMIN:     ['COMPANY_ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER'],
+      COMPANY_ADMIN:   ['PROJECT_MANAGER', 'TEAM_MEMBER'],
+      PROJECT_MANAGER: ['TEAM_MEMBER'],
+      TEAM_MEMBER:     [],
+    };
+    const roles = visibleRoles[actorRole] || [];
+
     return this.prisma.user.findMany({
+      where: { role: { in: roles as any } },
       select: {
         id: true, name: true, email: true, role: true,
         employeeId: true, department: true, active: true,
@@ -111,13 +134,12 @@ export class UsersService implements OnModuleInit {
     });
   }
 
-  // ── Revoke / Restore access ──────────────────────────────────────────────────
+  // ── Revoke / Restore ────────────────────────────────────────────────────────
   async revokeUser(userId: string, actorRole: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
-    if (user.role === 'SUPER_ADMIN') throw new ForbiddenException('Cannot revoke Super Admin');
-    if (user.role === 'COMPANY_ADMIN' && actorRole !== 'SUPER_ADMIN')
-      throw new ForbiddenException('Only Super Admin can revoke Company Admin');
+    if (!this.canCreateRole(actorRole, user.role))
+      throw new ForbiddenException('You do not have permission to revoke this user');
 
     return this.prisma.user.update({
       where: { id: userId },
@@ -126,7 +148,12 @@ export class UsersService implements OnModuleInit {
     });
   }
 
-  async restoreUser(userId: string) {
+  async restoreUser(userId: string, actorRole: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    if (!this.canCreateRole(actorRole, user.role))
+      throw new ForbiddenException('You do not have permission to restore this user');
+
     return this.prisma.user.update({
       where: { id: userId },
       data:  { active: true },
@@ -134,11 +161,12 @@ export class UsersService implements OnModuleInit {
     });
   }
 
-  // ── Admin resets a user's password ──────────────────────────────────────────
+  // ── Reset password ──────────────────────────────────────────────────────────
   async resetPassword(dto: ResetPasswordDto, actorRole: string) {
     const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
     if (!user) throw new NotFoundException('User not found');
-    if (user.role === 'SUPER_ADMIN') throw new ForbiddenException('Cannot reset Super Admin password this way');
+    if (!this.canCreateRole(actorRole, user.role))
+      throw new ForbiddenException('You do not have permission to reset this user\'s password');
 
     const tempPassword = this.generateTempPassword();
     const passwordHash = await bcrypt.hash(tempPassword, 12);
@@ -154,7 +182,6 @@ export class UsersService implements OnModuleInit {
       },
     });
 
-    // Send reset email
     this.mailer.sendPasswordResetEmail({
       to:            user.email,
       name:          user.name,
@@ -166,7 +193,7 @@ export class UsersService implements OnModuleInit {
     return { message: 'Password reset. User will be required to change on next login.', tempPassword };
   }
 
-  // ── User changes their own password (first-login or self-service) ────────────
+  // ── Change own password ─────────────────────────────────────────────────────
   async changeOwnPassword(userId: string, currentPassword: string, newPassword: string) {
     if (newPassword.length < 8)
       throw new BadRequestException('New password must be at least 8 characters');
@@ -180,11 +207,10 @@ export class UsersService implements OnModuleInit {
     if (currentPassword === newPassword)
       throw new BadRequestException('New password must be different from the current password');
 
-    const newHash = await bcrypt.hash(newPassword, 12);
     await this.prisma.user.update({
       where: { id: userId },
       data:  {
-        passwordHash:        newHash,
+        passwordHash:        await bcrypt.hash(newPassword, 12),
         mustChangePassword:  false,
         passwordResetToken:  null,
         passwordResetExpiry: null,
@@ -194,7 +220,6 @@ export class UsersService implements OnModuleInit {
     return { message: 'Password changed successfully' };
   }
 
-  // ── Get employee options from employee_configs for the create-user dropdown ──
   async getEmployeeOptions() {
     return this.prisma.$queryRawUnsafe<any[]>(
       `SELECT "employeeNo", name, email, designation

@@ -14,13 +14,15 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    // Support login by email OR by employeeId (used as username)
-    let user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    // Support login by email OR employeeId — both case-insensitive
+    let user = await this.prisma.user.findFirst({
+      where: { email: { equals: dto.email, mode: 'insensitive' } },
+    });
 
-    // If not found by email, try employeeId field
     if (!user) {
-      const byEmpId = await this.prisma.user.findUnique({ where: { employeeId: dto.email } });
-      if (byEmpId) user = byEmpId;
+      user = await this.prisma.user.findFirst({
+        where: { employeeId: { equals: dto.email, mode: 'insensitive' } },
+      });
     }
 
     if (!user || !user.active) throw new UnauthorizedException('Invalid credentials');
@@ -29,8 +31,6 @@ export class AuthService {
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     const tokens = await this.generateTokens(user);
-
-    // Tell the frontend if the user must change their password
     return {
       ...tokens,
       mustChangePassword: (user as any).mustChangePassword ?? false,
@@ -50,14 +50,12 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
+    return this.prisma.user.findUnique({
       where:  { id: userId },
       select: {
         id: true, name: true, email: true, role: true,
-        employeeId: true, department: true,
-        mustChangePassword: true,
+        employeeId: true, department: true, mustChangePassword: true,
       },
     });
-    return user;
   }
 }

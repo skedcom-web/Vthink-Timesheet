@@ -2,18 +2,20 @@ import { useState, useCallback, memo } from 'react';
 import {
   LayoutDashboard, Clock, Plus, Users, CheckCircle2,
   BarChart3, LogOut, ChevronDown, ChevronRight, Settings, Menu,
-  UserCog, Upload,
+  UserCog, Upload, FileText,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import Login from './components/Login';
 import ForceChangePassword from './components/ForceChangePassword';
 import Dashboard from './components/Dashboard';
 import Overview from './components/Overview';
+import TeamMemberOverview from './components/TeamMemberOverview';
 import AddTask from './components/AddTask';
 import AssignTask from './components/AssignTask';
 import EnterTimesheet from './components/EnterTimesheet';
 import ApproveTimesheet from './components/ApproveTimesheet';
 import Reports from './components/Reports';
+import TeamMemberReports from './components/TeamMemberReports';
 import AdminUpload from './components/AdminUpload';
 import ManageUsers from './components/ManageUsers';
 import { ToastContainer } from './components/ui/Toast';
@@ -32,19 +34,33 @@ const ROLE_COLORS: Record<string, { from: string; to: string }> = {
   TEAM_MEMBER:     { from: '#059669', to: '#047857' },
 };
 
-const MemoOverview    = memo(Overview);
-const MemoDashboard   = memo(Dashboard);
-const MemoAddTask     = memo(AddTask);
-const MemoAssignTask  = memo(AssignTask);
-const MemoEnterTS     = memo(EnterTimesheet);
-const MemoApproveTS   = memo(ApproveTimesheet);
-const MemoReports     = memo(Reports);
-const MemoAdminUpload = memo(AdminUpload);
-const MemoManageUsers = memo(ManageUsers);
+const MemoOverview           = memo(Overview);
+const MemoTeamMemberOverview = memo(TeamMemberOverview);
+const MemoDashboard          = memo(Dashboard);
+const MemoAddTask            = memo(AddTask);
+const MemoAssignTask         = memo(AssignTask);
+const MemoEnterTS            = memo(EnterTimesheet);
+const MemoApproveTS          = memo(ApproveTimesheet);
+const MemoReports            = memo(Reports);
+const MemoTeamMemberReports  = memo(TeamMemberReports);
+const MemoAdminUpload        = memo(AdminUpload);
+const MemoManageUsers        = memo(ManageUsers);
+
+function getDefaultScreen(): Screen {
+  try {
+    const raw = localStorage.getItem('vthink-auth');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.state?.user?.role === 'TEAM_MEMBER') return 'overview';
+    }
+  } catch { /* ignore */ }
+  return 'dashboard';
+}
 
 export default function App() {
   const { user, isAuthenticated, mustChangePassword, logout } = useAuthStore();
-  const [screen, setScreen]               = useState<Screen>('dashboard');
+  const isTeamMember = user?.role === 'TEAM_MEMBER';
+  const [screen, setScreen]               = useState<Screen>(getDefaultScreen);
   const [timesheetOpen, setTimesheetOpen] = useState(true);
   const [adminOpen, setAdminOpen]         = useState(true);
   const [sidebarOpen, setSidebarOpen]     = useState(false);
@@ -62,7 +78,7 @@ export default function App() {
 
   const canApprove     = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER'].includes(user.role);
   const canManageTasks = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER'].includes(user.role);
-  const canAdmin       = ['SUPER_ADMIN', 'COMPANY_ADMIN'].includes(user.role);
+  const canAdmin       = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER'].includes(user.role);
   const roleColor      = ROLE_COLORS[user.role] || ROLE_COLORS.TEAM_MEMBER;
 
   const navItem = (s: Screen, icon: React.ReactNode, label: string) => {
@@ -95,7 +111,7 @@ export default function App() {
 
       {/* Nav */}
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-        {navItem('dashboard', <LayoutDashboard className="w-4 h-4" />, 'Dashboard')}
+        {!isTeamMember && navItem('dashboard', <LayoutDashboard className="w-4 h-4" />, 'Dashboard')}
         {navItem('overview',  <BarChart3       className="w-4 h-4" />, 'Overview')}
 
         {/* Timesheet group */}
@@ -116,7 +132,7 @@ export default function App() {
 
         {canManageTasks && navItem('tasks',  <Plus  className="w-4 h-4" />, 'Add Task')}
         {canManageTasks && navItem('assign', <Users className="w-4 h-4" />, 'Assign Task')}
-        {navItem('reports', <BarChart3 className="w-4 h-4" />, 'Reports')}
+        {navItem('reports', <FileText className="w-4 h-4" />, 'Reports')}
 
         {/* Admin group */}
         {canAdmin && (
@@ -190,10 +206,13 @@ export default function App() {
               This prevents re-mount flicker on navigation.
             */}
             <div style={{ display: screen === 'dashboard'    ? 'block' : 'none' }}>
-              <MemoDashboard key="dashboard" refreshKey={refreshKey} onNavigate={nav as any} />
+              {!isTeamMember && <MemoDashboard key="dashboard" refreshKey={refreshKey} onNavigate={nav as any} />}
             </div>
             <div style={{ display: screen === 'overview'     ? 'block' : 'none' }}>
-              <MemoOverview key="overview" refreshKey={refreshKey} onNavigate={nav as any} />
+              {isTeamMember
+                ? <MemoTeamMemberOverview key="tm-overview" refreshKey={refreshKey} onNavigate={nav as any} />
+                : <MemoOverview key="overview" refreshKey={refreshKey} onNavigate={nav as any} />
+              }
             </div>
             <div style={{ display: screen === 'tasks'        ? 'block' : 'none' }}>
               <MemoAddTask key="tasks" onBack={goOverview} onDataChanged={notifyDataChanged} />
@@ -208,7 +227,10 @@ export default function App() {
               <MemoApproveTS key="approve" onBack={goOverview} onDataChanged={notifyDataChanged} />
             </div>
             <div style={{ display: screen === 'reports'      ? 'block' : 'none' }}>
-              <MemoReports key="reports" onBack={goOverview} />
+              {isTeamMember
+                ? <MemoTeamMemberReports key="tm-reports" onBack={goOverview} />
+                : <MemoReports key="reports" onBack={goOverview} />
+              }
             </div>
             <div style={{ display: screen === 'admin-upload' ? 'block' : 'none' }}>
               <MemoAdminUpload key="admin-upload" onBack={goOverview} onDataChanged={notifyDataChanged} />

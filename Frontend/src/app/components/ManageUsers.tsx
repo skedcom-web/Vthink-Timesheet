@@ -5,13 +5,23 @@ import {
   ChevronDown, Eye, EyeOff, Copy, X, UserCog,
 } from 'lucide-react';
 import { usersApi } from '../../services/api';
+import { useAuthStore } from '../../store/authStore';
 import { toast } from './ui/Toast';
 
-const ROLE_OPTIONS = [
+// All possible role options
+const ALL_ROLE_OPTIONS = [
   { value: 'COMPANY_ADMIN',   label: 'Company Admin',   color: '#2563EB', bg: '#DBEAFE' },
   { value: 'PROJECT_MANAGER', label: 'Project Manager', color: '#DB2777', bg: '#FCE7F3' },
   { value: 'TEAM_MEMBER',     label: 'Employee',        color: '#059669', bg: '#D1FAE5' },
 ];
+
+// Roles each actor can create
+const CREATABLE_ROLES: Record<string, string[]> = {
+  SUPER_ADMIN:     ['COMPANY_ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER'],
+  COMPANY_ADMIN:   ['PROJECT_MANAGER', 'TEAM_MEMBER'],
+  PROJECT_MANAGER: ['TEAM_MEMBER'],
+  TEAM_MEMBER:     [],
+};
 const ROLE_LABEL: Record<string, string> = {
   SUPER_ADMIN:     'Super Admin',
   COMPANY_ADMIN:   'Company Admin',
@@ -33,6 +43,10 @@ interface UserRecord {
 interface EmpOption { employeeNo: string; name: string; email: string; designation: string; }
 
 export default function ManageUsers({ onBack }: { onBack: () => void }) {
+  const { user: currentUser } = useAuthStore();
+  const ROLE_OPTIONS = ALL_ROLE_OPTIONS.filter(r =>
+    (CREATABLE_ROLES[currentUser?.role || ''] || []).includes(r.value)
+  );
   const [tab, setTab]                 = useState<'list' | 'add'>('list');
   const [users, setUsers]             = useState<UserRecord[]>([]);
   const [empOptions, setEmpOptions]   = useState<EmpOption[]>([]);
