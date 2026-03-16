@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft, Upload, FileSpreadsheet, CheckCircle2, AlertCircle,
-  RefreshCw, Loader2, CloudUpload, X, Building2, Users, Briefcase, Tag,
+  RefreshCw, Loader2, CloudUpload, X, Building2, Users, Briefcase,
+  Tag, Download,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { projectConfigApi, employeeConfigApi, projectConfigSummaryApi } from '../../services/api';
 import { toast } from './ui/Toast';
 
@@ -11,15 +13,127 @@ type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 interface ProjectSummary  { totalProjects: number; totalTaskNames: number; }
 interface EmployeeSummary { total: number; byDesignation: { designation: string; count: number }[]; }
 
+// ── Template download helpers ─────────────────────────────────────────────────
+
+function downloadProjectTemplate() {
+  const wb = XLSX.utils.book_new();
+
+  // Headers matching exactly what the backend parser expects
+  const headers = ['Project Name', 'Client', 'Description', 'Task Types'];
+
+  // Sample rows to guide the user
+  const sampleRows = [
+    ['Mobile App Phase 1', 'GlobalTech Inc', 'Mobile application development', 'UI Design | API Development | Testing | Documentation'],
+    ['Website Redesign',   'Acme Corp',      'Full website redesign project',   'Homepage Design | Content Migration | SEO Optimisation'],
+    ['Data Migration',     'Pinnacle Ltd',   'Database migration project',       'Schema Analysis | Data Cleansing | ETL Development | UAT'],
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+
+  // Column widths
+  ws['!cols'] = [
+    { wch: 30 },  // Project Name
+    { wch: 22 },  // Client
+    { wch: 36 },  // Description
+    { wch: 60 },  // Task Types
+  ];
+
+  // Style header row (bold, background) — basic approach via cell metadata
+  const headerStyle = { font: { bold: true }, fill: { fgColor: { rgb: 'EEF2FF' } } };
+  ['A1','B1','C1','D1'].forEach(cell => {
+    if (ws[cell]) ws[cell].s = headerStyle;
+  });
+
+  // Instructions sheet
+  const instrData = [
+    ['vThink Timesheet — Project Addition Upload Template'],
+    [''],
+    ['INSTRUCTIONS'],
+    ['1. Fill in the "Projects" sheet starting from row 2 (do not delete the header row).'],
+    ['2. Project Name is REQUIRED. All other columns are optional.'],
+    ['3. Task Types: separate multiple tasks with a pipe character  |  e.g.  Task A | Task B | Task C'],
+    ['4. Save the file as .xlsx and upload it using the Upload button.'],
+    ['5. Re-uploading the same project will update it — duplicates are handled automatically.'],
+    [''],
+    ['COLUMN GUIDE'],
+    ['Project Name', 'Required. The full project name.'],
+    ['Client',       'Optional. Client or company name.'],
+    ['Description',  'Optional. Brief description of the project.'],
+    ['Task Types',   'Optional. Pipe-separated list of task names for this project.'],
+  ];
+  const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
+  wsInstr['!cols'] = [{ wch: 40 }, { wch: 50 }];
+
+  XLSX.utils.book_append_sheet(wb, ws,     'Projects');
+  XLSX.utils.book_append_sheet(wb, wsInstr,'Instructions');
+
+  XLSX.writeFile(wb, 'vThink_Project_Upload_Template.xlsx');
+  toast.success('Project template downloaded!');
+}
+
+function downloadEmployeeTemplate() {
+  const wb = XLSX.utils.book_new();
+
+  // Headers matching exactly what the backend parser expects
+  const headers = ['Employee Number', 'Employee Name', 'Designation', 'Email'];
+
+  // Sample rows to guide the user
+  const sampleRows = [
+    ['VT001', 'Arun Kumar',       'Senior Developer',       'arun.kumar@vthink.co.in'],
+    ['VT002', 'Priya Ramasamy',   'UI/UX Designer',         'priya.r@vthink.co.in'],
+    ['VT003', 'Mohammed Farhan',  'Project Manager',        'farhan@vthink.co.in'],
+    ['VT004', 'Divya Suresh',     'QA Engineer',            'divya.s@vthink.co.in'],
+    ['VT005', 'Ramesh Natarajan', 'Business Analyst',       'ramesh.n@vthink.co.in'],
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+
+  // Column widths
+  ws['!cols'] = [
+    { wch: 20 },  // Employee Number
+    { wch: 26 },  // Employee Name
+    { wch: 26 },  // Designation
+    { wch: 32 },  // Email
+  ];
+
+  // Instructions sheet
+  const instrData = [
+    ['vThink Timesheet — Employee Addition Upload Template'],
+    [''],
+    ['INSTRUCTIONS'],
+    ['1. Fill in the "Employees" sheet starting from row 2 (do not delete the header row).'],
+    ['2. Employee Number and Employee Name are REQUIRED.'],
+    ['3. If Employee Number is left blank, the system will auto-generate one.'],
+    ['4. Re-uploading the same Employee Number will update the record — no duplicates created.'],
+    ['5. Save the file as .xlsx and upload it using the Upload button.'],
+    [''],
+    ['COLUMN GUIDE'],
+    ['Employee Number', 'Required. Unique ID e.g. VT001. Auto-generated if blank.'],
+    ['Employee Name',   'Required. Full name of the employee.'],
+    ['Designation',     'Optional. Job title or role e.g. Senior Developer.'],
+    ['Email',           'Optional but recommended. Used for notifications.'],
+  ];
+  const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
+  wsInstr['!cols'] = [{ wch: 22 }, { wch: 54 }];
+
+  XLSX.utils.book_append_sheet(wb, ws,     'Employees');
+  XLSX.utils.book_append_sheet(wb, wsInstr,'Instructions');
+
+  XLSX.writeFile(wb, 'vThink_Employee_Upload_Template.xlsx');
+  toast.success('Employee template downloaded!');
+}
+
 // ── Reusable upload card ──────────────────────────────────────────────────────
 function UploadCard({
   title, subtitle, hint,
-  onUpload,
+  onUpload, onDownloadTemplate, templateLabel,
 }: {
-  title:    string;
-  subtitle: string;
-  hint:     React.ReactNode;
-  onUpload: (file: File) => Promise<string>; // returns success message
+  title:             string;
+  subtitle:          string;
+  hint:              React.ReactNode;
+  onUpload:          (file: File) => Promise<string>;
+  onDownloadTemplate: () => void;
+  templateLabel:     string;
 }) {
   const [uploadState,  setUploadState]  = useState<UploadState>('idle');
   const [uploadMsg,    setUploadMsg]    = useState('');
@@ -60,10 +174,35 @@ function UploadCard({
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6">
-      <div className="flex items-center gap-2 mb-1">
-        <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-        <h2 className="text-base font-semibold text-slate-800">{title}</h2>
+
+      {/* Title row with Download Template button */}
+      <div className="flex items-start justify-between gap-4 mb-1">
+        <div className="flex items-center gap-2">
+          <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+          <h2 className="text-base font-semibold text-slate-800">{title}</h2>
+        </div>
+        <button
+          onClick={onDownloadTemplate}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all hover:shadow-sm shrink-0"
+          style={{
+            background:  '#F0FDF4',
+            borderColor: '#86EFAC',
+            color:       '#16A34A',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background   = '#DCFCE7';
+            e.currentTarget.style.borderColor  = '#4ADE80';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background   = '#F0FDF4';
+            e.currentTarget.style.borderColor  = '#86EFAC';
+          }}
+        >
+          <Download className="w-3.5 h-3.5" />
+          {templateLabel}
+        </button>
       </div>
+
       <p className="text-sm text-slate-500 mb-4">{subtitle}</p>
 
       {/* Format hint */}
@@ -73,7 +212,7 @@ function UploadCard({
 
       {/* Drop zone */}
       <div
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={e  => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); onFileSelect(e.dataTransfer.files?.[0] ?? null); }}
         onClick={() => fileInputRef.current?.click()}
@@ -94,7 +233,11 @@ function UploadCard({
             <p className="text-sm font-semibold text-slate-800">{selectedFile.name}</p>
             <p className="text-xs text-slate-400">{(selectedFile.size / 1024).toFixed(1)} KB · Click to change</p>
             <button
-              onClick={e => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+              onClick={e => {
+                e.stopPropagation();
+                setSelectedFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              }}
               className="absolute top-2 right-2 text-slate-400 hover:text-slate-600"
             >
               <X className="w-4 h-4" />
@@ -111,6 +254,7 @@ function UploadCard({
         )}
       </div>
 
+      {/* Upload button */}
       <button
         onClick={handleUpload}
         disabled={!selectedFile || uploadState === 'uploading'}
@@ -160,13 +304,11 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
 
   useEffect(() => { fetchSummaries(); }, [fetchSummaries]);
 
-  // ── Upload handlers — return the success message string ──────────────────────
   const handleProjectUpload = async (file: File): Promise<string> => {
     const res = await projectConfigApi.upload(file);
     const msg = res.message || `Imported ${res.projects} project(s) and ${res.taskNames} task name(s)`;
     toast.success(msg);
     onDataChanged?.();
-    // Refresh summaries immediately after upload
     await fetchSummaries();
     return msg;
   };
@@ -176,7 +318,6 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
     const msg = res.message || `Imported ${res.employees} employee(s)`;
     toast.success(msg);
     onDataChanged?.();
-    // Refresh summaries immediately after upload
     await fetchSummaries();
     return msg;
   };
@@ -190,7 +331,9 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
 
       <div>
         <h1 className="text-2xl font-semibold text-slate-900 mb-1">Admin — Data Uploads</h1>
-        <p className="text-slate-500 text-sm">Upload Excel files to populate projects, task names and employee records across the application.</p>
+        <p className="text-slate-500 text-sm">
+          Download a template, fill in your data, and upload it to populate projects, tasks and employees.
+        </p>
       </div>
 
       {/* ── Summary Cards ─────────────────────────────────────────────────────── */}
@@ -241,7 +384,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
             <div className="flex flex-col items-center justify-center py-6 text-slate-400 gap-1">
               <Building2 className="w-8 h-8 text-slate-200" />
               <p className="text-sm">No projects uploaded yet</p>
-              <p className="text-xs">Upload a file below to get started</p>
+              <p className="text-xs">Download the template below, fill it in and upload</p>
             </div>
           )}
         </div>
@@ -266,20 +409,18 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
             </div>
           ) : empSummary && empSummary.total > 0 ? (
             <div className="space-y-3">
-              {/* Total */}
               <div className="bg-emerald-50 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-emerald-700">{empSummary.total}</p>
                 <p className="text-xs text-emerald-500 mt-0.5 flex items-center justify-center gap-1">
                   <Users className="w-3 h-3" /> Total Employees
                 </p>
               </div>
-              {/* Designation breakdown */}
               {empSummary.byDesignation.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">By Designation</p>
                   <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
                     {empSummary.byDesignation.map(d => (
-                      <div key={d.designation} className="flex items-center justify-between gap-2 group">
+                      <div key={d.designation} className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <Briefcase className="w-3 h-3 text-slate-400 shrink-0" />
                           <span className="text-xs text-slate-600 truncate">{d.designation}</span>
@@ -297,7 +438,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
             <div className="flex flex-col items-center justify-center py-6 text-slate-400 gap-1">
               <Users className="w-8 h-8 text-slate-200" />
               <p className="text-sm">No employees uploaded yet</p>
-              <p className="text-xs">Upload a file below to get started</p>
+              <p className="text-xs">Download the template below, fill it in and upload</p>
             </div>
           )}
         </div>
@@ -306,34 +447,44 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
       {/* ── Project Addition Upload ─────────────────────────────────────────────── */}
       <UploadCard
         title="Project Addition Upload"
-        subtitle="Upload an Excel file to populate the Project and Task Name lists used across the application."
+        subtitle="Download the template, fill in your project and task data, then upload the completed file."
         hint={
           <>
-            <strong>Expected columns:</strong>&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Project Name</span>&nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Client</span>&nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Description</span>&nbsp;·&nbsp;
+            <strong>Required columns:</strong>&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Project Name</span>
+            &nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Client</span>
+            &nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Description</span>
+            &nbsp;·&nbsp;
             <span className="font-mono bg-indigo-100 px-1 rounded">Task Types</span>
             &nbsp;(pipe-separated: <em>Task A | Task B | Task C</em>)
           </>
         }
         onUpload={handleProjectUpload}
+        onDownloadTemplate={downloadProjectTemplate}
+        templateLabel="Download Template"
       />
 
       {/* ── Employee Addition Upload ────────────────────────────────────────────── */}
       <UploadCard
         title="Employee Addition Upload"
-        subtitle="Upload an Excel file to populate the Employee list used in the Assign Task workflow."
+        subtitle="Download the template, fill in your employee details, then upload the completed file."
         hint={
           <>
-            <strong>Expected columns:</strong>&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Number</span>&nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Name</span>&nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Designation</span>&nbsp;·&nbsp;
+            <strong>Required columns:</strong>&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Number</span>
+            &nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Name</span>
+            &nbsp;·&nbsp;
+            <span className="font-mono bg-indigo-100 px-1 rounded">Designation</span>
+            &nbsp;·&nbsp;
             <span className="font-mono bg-indigo-100 px-1 rounded">Email</span>
           </>
         }
         onUpload={handleEmployeeUpload}
+        onDownloadTemplate={downloadEmployeeTemplate}
+        templateLabel="Download Template"
       />
     </div>
   );
