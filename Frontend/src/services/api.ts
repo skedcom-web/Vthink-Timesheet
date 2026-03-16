@@ -64,7 +64,14 @@ export const timesheetsApi = {
 };
 
 export const usersApi = {
-  getAll: () => api.get('/api/v1/users').then(r => r.data),
+  getAll:            ()                    => api.get('/api/v1/users').then(r => r.data),
+  getEmployeeOptions:()                    => api.get('/api/v1/users/employee-options').then(r => r.data),
+  create:            (data: any)           => api.post('/api/v1/users', data).then(r => r.data),
+  revoke:            (id: string)          => api.patch(`/api/v1/users/${id}/revoke`).then(r => r.data),
+  restore:           (id: string)          => api.patch(`/api/v1/users/${id}/restore`).then(r => r.data),
+  resetPassword:     (data: any)           => api.post('/api/v1/users/reset-password', data).then(r => r.data),
+  changePassword:    (data: { currentPassword: string; newPassword: string }) =>
+    api.post('/api/v1/users/change-password', data).then(r => r.data),
 };
 
 export const dashboardApi = {

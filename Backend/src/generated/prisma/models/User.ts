@@ -33,6 +33,9 @@ export type UserMinAggregateOutputType = {
   employeeId: string | null
   department: string | null
   active: boolean | null
+  mustChangePassword: boolean | null
+  passwordResetToken: string | null
+  passwordResetExpiry: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -46,6 +49,9 @@ export type UserMaxAggregateOutputType = {
   employeeId: string | null
   department: string | null
   active: boolean | null
+  mustChangePassword: boolean | null
+  passwordResetToken: string | null
+  passwordResetExpiry: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -59,6 +65,9 @@ export type UserCountAggregateOutputType = {
   employeeId: number
   department: number
   active: number
+  mustChangePassword: number
+  passwordResetToken: number
+  passwordResetExpiry: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -74,6 +83,9 @@ export type UserMinAggregateInputType = {
   employeeId?: true
   department?: true
   active?: true
+  mustChangePassword?: true
+  passwordResetToken?: true
+  passwordResetExpiry?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -87,6 +99,9 @@ export type UserMaxAggregateInputType = {
   employeeId?: true
   department?: true
   active?: true
+  mustChangePassword?: true
+  passwordResetToken?: true
+  passwordResetExpiry?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +115,9 @@ export type UserCountAggregateInputType = {
   employeeId?: true
   department?: true
   active?: true
+  mustChangePassword?: true
+  passwordResetToken?: true
+  passwordResetExpiry?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -186,6 +204,9 @@ export type UserGroupByOutputType = {
   employeeId: string | null
   department: string | null
   active: boolean
+  mustChangePassword: boolean
+  passwordResetToken: string | null
+  passwordResetExpiry: Date | null
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -220,6 +241,9 @@ export type UserWhereInput = {
   employeeId?: Prisma.StringNullableFilter<"User"> | string | null
   department?: Prisma.StringNullableFilter<"User"> | string | null
   active?: Prisma.BoolFilter<"User"> | boolean
+  mustChangePassword?: Prisma.BoolFilter<"User"> | boolean
+  passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
@@ -239,6 +263,9 @@ export type UserOrderByWithRelationInput = {
   employeeId?: Prisma.SortOrderInput | Prisma.SortOrder
   department?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   refreshTokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
@@ -261,6 +288,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   department?: Prisma.StringNullableFilter<"User"> | string | null
   active?: Prisma.BoolFilter<"User"> | boolean
+  mustChangePassword?: Prisma.BoolFilter<"User"> | boolean
+  passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
@@ -280,6 +310,9 @@ export type UserOrderByWithAggregationInput = {
   employeeId?: Prisma.SortOrderInput | Prisma.SortOrder
   department?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -299,6 +332,9 @@ export type UserScalarWhereWithAggregatesInput = {
   employeeId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   department?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   active?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  mustChangePassword?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  passwordResetToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  passwordResetExpiry?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -312,6 +348,9 @@ export type UserCreateInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
@@ -331,6 +370,9 @@ export type UserUncheckedCreateInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
@@ -350,6 +392,9 @@ export type UserUpdateInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
@@ -369,6 +414,9 @@ export type UserUncheckedUpdateInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -388,6 +436,9 @@ export type UserCreateManyInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -401,6 +452,9 @@ export type UserUpdateManyMutationInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -414,6 +468,9 @@ export type UserUncheckedUpdateManyInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -427,6 +484,9 @@ export type UserCountOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   department?: Prisma.SortOrder
   active?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrder
+  passwordResetExpiry?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -440,6 +500,9 @@ export type UserMaxOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   department?: Prisma.SortOrder
   active?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrder
+  passwordResetExpiry?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -453,6 +516,9 @@ export type UserMinOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   department?: Prisma.SortOrder
   active?: Prisma.SortOrder
+  mustChangePassword?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrder
+  passwordResetExpiry?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -481,6 +547,10 @@ export type NullableStringFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -582,6 +652,9 @@ export type UserCreateWithoutRefreshTokensInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   tasksCreated?: Prisma.TaskCreateNestedManyWithoutCreatedByInput
@@ -600,6 +673,9 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   tasksCreated?: Prisma.TaskUncheckedCreateNestedManyWithoutCreatedByInput
@@ -634,6 +710,9 @@ export type UserUpdateWithoutRefreshTokensInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasksCreated?: Prisma.TaskUpdateManyWithoutCreatedByNestedInput
@@ -652,6 +731,9 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasksCreated?: Prisma.TaskUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -670,6 +752,9 @@ export type UserCreateWithoutTasksCreatedInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
@@ -688,6 +773,9 @@ export type UserUncheckedCreateWithoutTasksCreatedInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
@@ -722,6 +810,9 @@ export type UserUpdateWithoutTasksCreatedInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
@@ -740,6 +831,9 @@ export type UserUncheckedUpdateWithoutTasksCreatedInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -758,6 +852,9 @@ export type UserCreateWithoutAssignmentsInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
@@ -776,6 +873,9 @@ export type UserUncheckedCreateWithoutAssignmentsInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
@@ -799,6 +899,9 @@ export type UserCreateWithoutAssignedByInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
@@ -817,6 +920,9 @@ export type UserUncheckedCreateWithoutAssignedByInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
@@ -851,6 +957,9 @@ export type UserUpdateWithoutAssignmentsInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
@@ -869,6 +978,9 @@ export type UserUncheckedUpdateWithoutAssignmentsInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -898,6 +1010,9 @@ export type UserUpdateWithoutAssignedByInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
@@ -916,6 +1031,9 @@ export type UserUncheckedUpdateWithoutAssignedByInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -934,6 +1052,9 @@ export type UserCreateWithoutTimesheetsInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
@@ -952,6 +1073,9 @@ export type UserUncheckedCreateWithoutTimesheetsInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
@@ -975,6 +1099,9 @@ export type UserCreateWithoutTimesheetsApprovedByInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
@@ -993,6 +1120,9 @@ export type UserUncheckedCreateWithoutTimesheetsApprovedByInput = {
   employeeId?: string | null
   department?: string | null
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: string | null
+  passwordResetExpiry?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
@@ -1027,6 +1157,9 @@ export type UserUpdateWithoutTimesheetsInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
@@ -1045,6 +1178,9 @@ export type UserUncheckedUpdateWithoutTimesheetsInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -1074,6 +1210,9 @@ export type UserUpdateWithoutTimesheetsApprovedByInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
@@ -1092,6 +1231,9 @@ export type UserUncheckedUpdateWithoutTimesheetsApprovedByInput = {
   employeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -1186,6 +1328,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   employeeId?: boolean
   department?: boolean
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiry?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
@@ -1206,6 +1351,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   employeeId?: boolean
   department?: boolean
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiry?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -1219,6 +1367,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   employeeId?: boolean
   department?: boolean
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiry?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -1232,11 +1383,14 @@ export type UserSelectScalar = {
   employeeId?: boolean
   department?: boolean
   active?: boolean
+  mustChangePassword?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiry?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "passwordHash" | "role" | "employeeId" | "department" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "passwordHash" | "role" | "employeeId" | "department" | "active" | "mustChangePassword" | "passwordResetToken" | "passwordResetExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   tasksCreated?: boolean | Prisma.User$tasksCreatedArgs<ExtArgs>
@@ -1268,6 +1422,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     employeeId: string | null
     department: string | null
     active: boolean
+    mustChangePassword: boolean
+    passwordResetToken: string | null
+    passwordResetExpiry: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1707,6 +1864,9 @@ export interface UserFieldRefs {
   readonly employeeId: Prisma.FieldRef<"User", 'String'>
   readonly department: Prisma.FieldRef<"User", 'String'>
   readonly active: Prisma.FieldRef<"User", 'Boolean'>
+  readonly mustChangePassword: Prisma.FieldRef<"User", 'Boolean'>
+  readonly passwordResetToken: Prisma.FieldRef<"User", 'String'>
+  readonly passwordResetExpiry: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
