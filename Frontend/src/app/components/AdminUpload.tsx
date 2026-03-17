@@ -173,12 +173,12 @@ function UploadCard({
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
 
       {/* Title row with Download Template button */}
       <div className="flex items-start justify-between gap-4 mb-1">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+          <FileSpreadsheet className="w-5 h-5 text-primary" />
           <h2 className="text-base font-semibold text-slate-800">{title}</h2>
         </div>
         <button
@@ -203,10 +203,10 @@ function UploadCard({
         </button>
       </div>
 
-      <p className="text-sm text-slate-500 mb-4">{subtitle}</p>
+      <p className="text-sm text-gray-500 mb-4">{subtitle}</p>
 
       {/* Format hint */}
-      <div className="mb-4 p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-xs text-indigo-700">
+      <div className="mb-4 p-3 rounded-lg bg-primary-tint border border-indigo-100 text-xs text-indigo-700">
         {hint}
       </div>
 
@@ -218,8 +218,8 @@ function UploadCard({
         onClick={() => fileInputRef.current?.click()}
         className="relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all mb-4"
         style={{
-          borderColor: dragOver ? '#6366F1' : selectedFile ? '#A5B4FC' : '#CBD5E1',
-          background:  dragOver ? '#EEF2FF' : selectedFile ? '#F5F3FF' : '#F8FAFC',
+          borderColor: dragOver ? 'var(--primary)' : selectedFile ? '#A5B4FC' : '#CBD5E1',
+          background:  dragOver ? 'var(--primary-tint)' : selectedFile ? '#F5F3FF' : 'var(--page-bg)',
         }}
       >
         <input
@@ -247,7 +247,7 @@ function UploadCard({
           <div className="flex flex-col items-center gap-2">
             <CloudUpload className="w-8 h-8 text-slate-300" />
             <p className="text-sm font-medium text-slate-600">
-              <span className="text-indigo-600 font-semibold">Click to browse</span> or drag & drop
+              <span className="text-primary font-semibold">Click to browse</span> or drag & drop
             </p>
             <p className="text-xs text-slate-400">.xlsx or .xls · Max 10 MB</p>
           </div>
@@ -259,7 +259,7 @@ function UploadCard({
         onClick={handleUpload}
         disabled={!selectedFile || uploadState === 'uploading'}
         className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ background: selectedFile ? '#4F46E5' : '#94A3B8' }}
+        style={{ background: selectedFile ? 'var(--primary)' : '#94A3B8' }}
       >
         {uploadState === 'uploading'
           ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
@@ -325,13 +325,13 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
   return (
     <div className="p-6 max-w-5xl space-y-8">
       {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-primary hover:text-indigo-800 font-medium transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Overview
       </button>
 
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Admin — Data Uploads</h1>
-        <p className="text-slate-500 text-sm">
+        <h1 className="text-2xl font-semibold font-bold color-text-1 mb-1">Admin — Data Uploads</h1>
+        <p className="text-gray-500 text-sm">
           Download a template, fill in your data, and upload it to populate projects, tasks and employees.
         </p>
       </div>
@@ -340,11 +340,11 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         {/* Projects summary */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-indigo-600" />
+              <div className="w-9 h-9 rounded-lg bg-primary-tint flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-800">Imported Projects</p>
@@ -355,7 +355,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
               onClick={fetchSummaries}
               disabled={loadingSummary}
               title="Refresh"
-              className="text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-40"
+              className="text-slate-400 hover:text-primary transition-colors disabled:opacity-40"
             >
               <RefreshCw className={`w-4 h-4 ${loadingSummary ? 'animate-spin' : ''}`} />
             </button>
@@ -367,7 +367,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
             </div>
           ) : projSummary && (projSummary.totalProjects > 0 || projSummary.totalTaskNames > 0) ? (
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-indigo-50 rounded-lg p-3 text-center">
+              <div className="bg-primary-tint rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-indigo-700">{projSummary.totalProjects}</p>
                 <p className="text-xs text-indigo-500 mt-0.5 flex items-center justify-center gap-1">
                   <Building2 className="w-3 h-3" /> Projects
@@ -390,7 +390,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
         </div>
 
         {/* Employees summary */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">

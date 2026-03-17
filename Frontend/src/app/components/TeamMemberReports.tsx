@@ -175,13 +175,13 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
   }, [filtered, user, totalHours, approvedCount, pendingCount, weekCount, statusFilter, dateFrom, dateTo]);
 
   return (
-    <div className="p-6 space-y-5" style={{ background: '#F8FAFC', minHeight: '100%' }}>
+    <div className="p-6 space-y-5" style={{ background: 'var(--page-bg)', minHeight: '100%' }}>
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <button onClick={onBack}
-            className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-3 transition-colors">
+            className="flex items-center gap-1.5 text-sm text-primary hover:text-indigo-800 font-medium mb-3 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Overview
           </button>
           <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
@@ -189,10 +189,10 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
             <span>Timesheets</span> <span>›</span>
             <span className="text-slate-600 font-medium">My Reports</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900" style={{ letterSpacing: '-0.02em' }}>
+          <h1 className="text-2xl font-bold font-bold color-text-1" style={{ letterSpacing: '-0.02em' }}>
             My Timesheet Reports
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-gray-500 mt-0.5">
             View, filter and download all your past timesheets
           </p>
         </div>
@@ -215,13 +215,13 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-slate-100 p-4">
+      <div className="bg-white rounded-xl border border-gray-100 p-4">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Status filter */}
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="pl-3 pr-8 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700 cursor-pointer"
+            className="pl-3 pr-8 py-2.5 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700 cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             {Object.entries(STATUS_CONFIG).map(([k, v]) => (
@@ -234,12 +234,12 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
             <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
             <input
               type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-              className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700"
+              className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700"
             />
             <span className="text-slate-400 text-xs">to</span>
             <input
               type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-              className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700"
+              className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700"
             />
           </div>
 
@@ -262,20 +262,20 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Hours',    value: `${totalHours.toFixed(1)}h`, icon: Clock,        color: '#6366F1', bg: '#EEF2FF' },
+          { label: 'Total Hours',    value: `${totalHours.toFixed(1)}h`, icon: Clock,        color: 'var(--primary)', bg: 'var(--primary-tint)' },
           { label: 'Weeks Shown',    value: weekCount,                   icon: Calendar,     color: '#8B5CF6', bg: '#F5F3FF' },
           { label: 'Approved',       value: approvedCount,               icon: CheckCircle2, color: '#059669', bg: '#D1FAE5' },
           { label: 'Pending Review', value: pendingCount,                icon: AlertCircle,  color: '#D97706', bg: '#FEF3C7' },
         ].map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-4">
+            <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: s.bg }}>
                 <Icon className="w-5 h-5" style={{ color: s.color }} />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900" style={{ letterSpacing: '-0.02em' }}>{s.value}</div>
-                <div className="text-xs text-slate-500">{s.label}</div>
+                <div className="text-2xl font-bold font-bold color-text-1" style={{ letterSpacing: '-0.02em' }}>{s.value}</div>
+                <div className="text-xs text-gray-500">{s.label}</div>
               </div>
             </div>
           );
@@ -284,11 +284,11 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
 
       {/* Download notice */}
       <div className="rounded-xl p-4 flex items-start gap-3 border"
-        style={{ background: '#EEF2FF', borderColor: '#C7D2FE' }}>
-        <Download className="w-5 h-5 shrink-0 mt-0.5" style={{ color: '#6366F1' }} />
+        style={{ background: 'var(--primary-tint)', borderColor: '#C7D2FE' }}>
+        <Download className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--primary)' }} />
         <div>
           <div className="text-sm font-semibold" style={{ color: '#3730A3' }}>Download your timesheets as Excel</div>
-          <div className="text-xs mt-0.5" style={{ color: '#6366F1' }}>
+          <div className="text-xs mt-0.5" style={{ color: 'var(--primary)' }}>
             The Excel file includes 3 sheets — Summary, Weekly Overview, and Daily Details (with project and task breakdown per day).
             Apply filters above before downloading to narrow the data.
           </div>
@@ -297,7 +297,7 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
 
       {/* Timesheet list */}
       {loading ? (
-        <div className="bg-white rounded-xl border border-slate-100 p-12 flex items-center justify-center gap-3">
+        <div className="bg-white rounded-xl border border-gray-100 p-12 flex items-center justify-center gap-3">
           <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
           <span className="text-sm text-slate-400">Loading timesheets…</span>
         </div>
@@ -306,13 +306,13 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
           <p className="text-sm text-red-500">{error}</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-100 p-12 text-center">
+        <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
           <TrendingUp className="w-10 h-10 text-slate-200 mx-auto mb-3" />
           <p className="text-sm text-slate-400">No timesheets match your filters</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
             <Clock className="w-4 h-4 text-indigo-400" />
             <h3 className="text-sm font-semibold text-slate-700">All Timesheets</h3>
             <span className="ml-auto text-xs text-slate-400">{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
@@ -320,9 +320,9 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
+                <tr className="bg-slate-50 border-b border-gray-100">
                   {['Week', 'Total Hours', 'Status', 'Submitted On', 'Approved On'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                       {h}
                     </th>
                   ))}
@@ -344,7 +344,7 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-bold text-slate-900">
+                      <td className="px-4 py-3 font-bold font-bold color-text-1">
                         {Number(ts.totalHours).toFixed(1)}h
                       </td>
                       <td className="px-4 py-3">
@@ -354,10 +354,10 @@ export default function TeamMemberReports({ onBack }: { onBack: () => void }) {
                           {cfg.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-500">
+                      <td className="px-4 py-3 text-xs text-gray-500">
                         {ts.submittedAt ? fmt(ts.submittedAt) : '—'}
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-500">
+                      <td className="px-4 py-3 text-xs text-gray-500">
                         {ts.approvedAt ? fmt(ts.approvedAt) : '—'}
                       </td>
                     </tr>

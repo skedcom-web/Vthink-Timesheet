@@ -3,150 +3,130 @@ import { CheckCircle2, XCircle, Eye, ArrowLeft } from 'lucide-react';
 import { timesheetsApi } from '../../services/api';
 import { toast } from './ui/Toast';
 
-const DAY_KEYS   = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_KEYS   = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 
-function fmt(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+const STATUS_BADGE: Record<string, { bg: string; color: string }> = {
+  SUBMITTED: { bg:'#FFFBEB', color:'#B45309' },
+  APPROVED:  { bg:'#DCFCE7', color:'#15803D' },
+  REJECTED:  { bg:'#FEF2F2', color:'#DC2626' },
+  DRAFT:     { bg:'#F3F4F6', color:'#6B7280' },
+};
 
 export default function ApproveTimesheet({ onBack, onDataChanged }: { onBack: () => void; onDataChanged?: () => void }) {
   const [timesheets, setTimesheets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionId, setActionId] = useState<string | null>(null);
-  const [viewTs, setViewTs] = useState<any | null>(null);
-  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [loading,    setLoading]    = useState(true);
+  const [actionId,   setActionId]   = useState<string|null>(null);
+  const [viewTs,     setViewTs]     = useState<any|null>(null);
+  const [rejectId,   setRejectId]   = useState<string|null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
   const load = () => {
     setLoading(true);
-    timesheetsApi.getPending()
-      .then(setTimesheets)
-      .catch(() => toast.error('Failed to load timesheets'))
-      .finally(() => setLoading(false));
+    timesheetsApi.getPending().then(setTimesheets).catch(() => toast.error('Failed to load')).finally(() => setLoading(false));
   };
-
   useEffect(load, []);
 
   const approve = async (id: string) => {
     setActionId(id);
-    try {
-      await timesheetsApi.approve(id);
-      toast.success('Timesheet approved');
-      onDataChanged?.();
-      setTimesheets(prev => prev.filter(t => t.id !== id));
-      if (viewTs?.id === id) setViewTs(null);
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message || 'Failed to approve');
-    } finally { setActionId(null); }
+    try { await timesheetsApi.approve(id); toast.success('Timesheet approved'); onDataChanged?.(); setTimesheets(p=>p.filter(t=>t.id!==id)); if(viewTs?.id===id) setViewTs(null); }
+    catch (e: any) { toast.error(e?.response?.data?.error?.message||'Failed to approve'); }
+    finally { setActionId(null); }
   };
-
   const reject = async () => {
-    if (!rejectId) return;
-    setActionId(rejectId);
-    try {
-      await timesheetsApi.reject(rejectId, rejectReason);
-      toast.success('Timesheet rejected');
-      onDataChanged?.();
-      setTimesheets(prev => prev.filter(t => t.id !== rejectId));
-      if (viewTs?.id === rejectId) setViewTs(null);
-      setRejectId(null);
-      setRejectReason('');
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message || 'Failed to reject');
-    } finally { setActionId(null); }
+    if (!rejectId) return; setActionId(rejectId);
+    try { await timesheetsApi.reject(rejectId,rejectReason); toast.success('Timesheet rejected'); onDataChanged?.(); setTimesheets(p=>p.filter(t=>t.id!==rejectId)); if(viewTs?.id===rejectId) setViewTs(null); setRejectId(null); setRejectReason(''); }
+    catch (e: any) { toast.error(e?.response?.data?.error?.message||'Failed to reject'); }
+    finally { setActionId(null); }
   };
-
-  const statusBadge = (s: string) => ({
-    SUBMITTED: 'bg-amber-100 text-amber-700',
-    APPROVED: 'bg-emerald-100 text-emerald-700',
-    REJECTED: 'bg-red-100 text-red-700',
-    DRAFT: 'bg-slate-100 text-slate-700',
-  }[s] || 'bg-slate-100 text-slate-600');
 
   return (
-    <div className="p-6">
-      {/* Back button */}
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-4 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Overview
+    <div style={{ padding:24, background:'var(--page-bg)', minHeight:'100%' }}>
+      <button onClick={onBack} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:13, fontWeight:600, color:'var(--primary)', background:'none', border:'none', cursor:'pointer', marginBottom:16 }}>
+        <ArrowLeft style={{ width:15, height:15 }} /> Back to Overview
       </button>
-
-      <h1 className="text-2xl font-semibold text-slate-900 mb-1">Approve Timesheets</h1>
-      <p className="text-slate-500 text-sm mb-6">Review and action submitted timesheets</p>
+      <div style={{ fontSize:12, color:'var(--text-3)', marginBottom:6 }}>
+        <span>Timesheets</span> › <span style={{ color:'var(--text-2)', fontWeight:500 }}>Approve</span>
+      </div>
+      <h1 style={{ fontSize:22, fontWeight:700, color:'var(--text-1)', margin:'0 0 4px' }}>Approve Timesheets</h1>
+      <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 20px' }}>Review and action submitted timesheets</p>
 
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)}
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {[1,2,3].map(i => <div key={i} style={{ height:56, background:'var(--border)', borderRadius:10, animation:'pulse 1.5s ease-in-out infinite' }} />)}
         </div>
       ) : timesheets.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
-          <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-          <div className="text-slate-700 font-medium">All caught up!</div>
-          <div className="text-slate-400 text-sm mt-1">No timesheets pending approval</div>
+        <div className="card" style={{ padding:48, textAlign:'center' }}>
+          <CheckCircle2 style={{ width:44, height:44, color:'#16A34A', margin:'0 auto 12px' }} />
+          <div style={{ fontSize:14, fontWeight:600, color:'var(--text-1)' }}>All caught up!</div>
+          <div style={{ fontSize:13, color:'var(--text-2)', marginTop:4 }}>No timesheets pending approval</div>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card" style={{ overflow:'hidden' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left px-4 py-3 font-medium text-slate-600">Employee</th>
-                <th className="text-left px-4 py-3 font-medium text-slate-600">Week</th>
-                <th className="text-left px-4 py-3 font-medium text-slate-600">Hours</th>
-                <th className="text-left px-4 py-3 font-medium text-slate-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-slate-600">Submitted</th>
-                <th className="px-4 py-3 font-medium text-slate-600 text-right">Actions</th>
+              <tr style={{ background:'var(--border)' }}>
+                {['Employee','Week','Hours','Status','Submitted',''].map(h => (
+                  <th key={h} className="th" style={{ textAlign: h==='' ? 'right' : 'left', padding:'10px 16px' }}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {timesheets.map(ts => (
                 <>
-                  <tr key={ts.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-slate-900">{ts.employee?.name}</div>
-                      <div className="text-xs text-slate-400">{ts.employee?.employeeId || ts.employee?.email}</div>
+                  <tr key={ts.id} style={{ borderBottom:'1px solid var(--border)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background='var(--border)')}
+                    onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
+                    <td style={{ padding:'12px 16px' }}>
+                      <div style={{ fontWeight:600, color:'var(--text-1)', fontSize:13 }}>{ts.employee?.name}</div>
+                      <div style={{ fontSize:11, color:'var(--text-3)' }}>{ts.employee?.employeeId||ts.employee?.email}</div>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{fmt(ts.weekStartDate)} – {fmt(ts.weekEndDate)}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-900">{Number(ts.totalHours).toFixed(1)}h</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${statusBadge(ts.status)}`}>{ts.status}</span>
+                    <td style={{ padding:'12px 16px', fontSize:13, color:'var(--text-2)' }}>{fmt(ts.weekStartDate)} – {fmt(ts.weekEndDate)}</td>
+                    <td style={{ padding:'12px 16px', fontWeight:700, color:'var(--text-1)' }}>{Number(ts.totalHours).toFixed(1)}h</td>
+                    <td style={{ padding:'12px 16px' }}>
+                      <span className="badge" style={{ background:(STATUS_BADGE[ts.status]||STATUS_BADGE.DRAFT).bg, color:(STATUS_BADGE[ts.status]||STATUS_BADGE.DRAFT).color }}>{ts.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">{ts.submittedAt ? fmt(ts.submittedAt) : '—'}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setViewTs(viewTs?.id === ts.id ? null : ts)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-700 transition-colors">
-                          <Eye className="w-4 h-4" />
+                    <td style={{ padding:'12px 16px', fontSize:12, color:'var(--text-3)' }}>{ts.submittedAt?fmt(ts.submittedAt):'—'}</td>
+                    <td style={{ padding:'12px 16px' }}>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:6 }}>
+                        <button onClick={() => setViewTs(viewTs?.id===ts.id?null:ts)}
+                          style={{ padding:'5px 8px', borderRadius:6, border:'1px solid var(--border-mid)', background:'#fff', cursor:'pointer', color:'var(--text-2)' }}
+                          onMouseEnter={e => e.currentTarget.style.color='var(--primary)'}
+                          onMouseLeave={e => e.currentTarget.style.color='var(--text-2)'}>
+                          <Eye style={{ width:14, height:14 }} />
                         </button>
-                        <button onClick={() => approve(ts.id)} disabled={actionId === ts.id}
-                          className="flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                        <button onClick={() => approve(ts.id)} disabled={actionId===ts.id}
+                          style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'5px 12px', borderRadius:6, border:'none', background:'#DCFCE7', color:'#15803D', fontSize:12, fontWeight:600, cursor:'pointer', opacity:actionId===ts.id?0.5:1 }}>
+                          <CheckCircle2 style={{ width:13, height:13 }} /> Approve
                         </button>
                         <button onClick={() => { setRejectId(ts.id); setRejectReason(''); }}
-                          className="flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
-                          <XCircle className="w-3.5 h-3.5" /> Reject
+                          style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'5px 12px', borderRadius:6, border:'none', background:'#FEF2F2', color:'#DC2626', fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                          <XCircle style={{ width:13, height:13 }} /> Reject
                         </button>
                       </div>
                     </td>
                   </tr>
                   {viewTs?.id === ts.id && (
-                    <tr key={`${ts.id}-detail`}>
-                      <td colSpan={6} className="px-4 pb-4 bg-slate-50">
-                        <div className="rounded-lg border border-slate-200 overflow-hidden mt-1">
-                          <table className="w-full text-xs">
+                    <tr key={`${ts.id}-d`}>
+                      <td colSpan={6} style={{ padding:'0 16px 16px', background:'var(--border)' }}>
+                        <div className="card" style={{ overflow:'hidden', marginTop:10 }}>
+                          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                             <thead>
-                              <tr className="bg-white border-b border-slate-200">
-                                <th className="text-left px-3 py-2 font-medium text-slate-600">Project</th>
-                                <th className="text-left px-3 py-2 font-medium text-slate-600">Task</th>
-                                {DAY_LABELS.map(d => <th key={d} className="px-2 py-2 font-medium text-slate-600 text-center">{d}</th>)}
-                                <th className="px-3 py-2 font-medium text-slate-600 text-center">Total</th>
+                              <tr style={{ background:'var(--border)' }}>
+                                <th className="th" style={{ textAlign:'left', padding:'8px 12px' }}>Project</th>
+                                <th className="th" style={{ textAlign:'left', padding:'8px 12px' }}>Task</th>
+                                {DAY_LABELS.map(d => <th key={d} className="th" style={{ padding:'8px', textAlign:'center' }}>{d}</th>)}
+                                <th className="th" style={{ padding:'8px 12px', textAlign:'center' }}>Total</th>
                               </tr>
                             </thead>
                             <tbody>
                               {ts.entries?.map((e: any, i: number) => (
-                                <tr key={i} className="border-b border-slate-100">
-                                  <td className="px-3 py-2 text-slate-700">{e.task?.project?.code || '—'}</td>
-                                  <td className="px-3 py-2 text-slate-700">{e.task?.name || '—'}</td>
-                                  {DAY_KEYS.map(dk => <td key={dk} className="px-2 py-2 text-center text-slate-600">{Number(e[dk]).toFixed(1)}</td>)}
-                                  <td className="px-3 py-2 text-center font-semibold text-indigo-700">{Number(e.totalHours).toFixed(1)}</td>
+                                <tr key={i} style={{ borderBottom:'1px solid var(--border)' }}>
+                                  <td style={{ padding:'8px 12px', color:'var(--text-2)' }}>{e.task?.project?.code||'—'}</td>
+                                  <td style={{ padding:'8px 12px', color:'var(--text-1)' }}>{e.task?.name||'—'}</td>
+                                  {DAY_KEYS.map(dk => <td key={dk} style={{ padding:'8px', textAlign:'center', color:'var(--text-2)' }}>{Number(e[dk]).toFixed(1)}</td>)}
+                                  <td style={{ padding:'8px 12px', textAlign:'center', fontWeight:700, color:'var(--primary)' }}>{Number(e.totalHours).toFixed(1)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -162,21 +142,18 @@ export default function ApproveTimesheet({ onBack, onDataChanged }: { onBack: ()
         </div>
       )}
 
+      {/* Reject modal */}
       {rejectId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-base font-semibold text-slate-900 mb-1">Reject Timesheet</h3>
-            <p className="text-sm text-slate-500 mb-4">Provide a reason for rejection (optional)</p>
-            <textarea
-              value={rejectReason}
-              onChange={e => setRejectReason(e.target.value)}
-              rows={3}
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50, padding:16 }}>
+          <div className="card" style={{ padding:24, width:'100%', maxWidth:440 }}>
+            <h3 style={{ fontSize:16, fontWeight:600, color:'var(--text-1)', margin:'0 0 4px' }}>Reject Timesheet</h3>
+            <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 16px' }}>Provide a reason for rejection (optional)</p>
+            <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3}
               placeholder="e.g. Hours don't match project plan..."
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none mb-4"
-            />
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => setRejectId(null)} className="border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm">Cancel</button>
-              <button onClick={reject} disabled={!!actionId} className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              style={{ width:'100%', border:'1px solid var(--border-mid)', borderRadius:8, padding:'8px 12px', fontSize:13, resize:'none', outline:'none', fontFamily:"'Inter',system-ui,sans-serif", marginBottom:16 }} />
+            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+              <button onClick={() => setRejectId(null)} className="btn-secondary">Cancel</button>
+              <button onClick={reject} disabled={!!actionId} className="btn-danger">
                 {actionId ? 'Rejecting...' : 'Confirm Reject'}
               </button>
             </div>

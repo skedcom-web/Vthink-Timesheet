@@ -29,7 +29,7 @@ const ROLE_LABEL: Record<string, string> = {
   TEAM_MEMBER:     'Employee',
 };
 const ROLE_COLOR: Record<string, { color: string; bg: string }> = {
-  SUPER_ADMIN:     { color: '#7C3AED', bg: '#EDE9FE' },
+  SUPER_ADMIN:     { color: '#7C3AED', bg: 'var(--primary-tint)' },
   COMPANY_ADMIN:   { color: '#2563EB', bg: '#DBEAFE' },
   PROJECT_MANAGER: { color: '#DB2777', bg: '#FCE7F3' },
   TEAM_MEMBER:     { color: '#059669', bg: '#D1FAE5' },
@@ -159,21 +159,21 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
   };
 
   const lbl = 'block text-sm font-medium text-slate-700 mb-1';
-  const inp = 'w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50';
+  const inp = 'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-slate-50';
 
   return (
     <div className="p-6 max-w-6xl">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-4 transition-colors">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-primary hover:text-indigo-800 font-medium mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Overview
       </button>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-          <UserCog className="w-5 h-5 text-indigo-600" />
+        <div className="w-10 h-10 rounded-xl bg-primary-tint flex items-center justify-center">
+          <UserCog className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">User Management</h1>
-          <p className="text-slate-500 text-sm">Add users, manage access and reset passwords</p>
+          <h1 className="text-2xl font-semibold font-bold color-text-1">User Management</h1>
+          <p className="text-gray-500 text-sm">Add users, manage access and reset passwords</p>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
         {(['list','add'] as const).map(t => (
           <button key={t} onClick={() => { setTab(t); setCreatedResult(null); }}
             className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
-            style={{ background: tab === t ? '#fff' : 'transparent', color: tab === t ? '#4F46E5' : '#64748B',
+            style={{ background: tab === t ? '#fff' : 'transparent', color: tab === t ? 'var(--primary)' : '#64748B',
               boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
             {t === 'list' ? <><Users className="w-4 h-4 inline mr-1.5" />Manage Users</> : <><UserPlus className="w-4 h-4 inline mr-1.5" />Add New User</>}
           </button>
@@ -192,7 +192,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
       {/* ── ADD USER TAB ─────────────────────────────────────────────────────── */}
       {tab === 'add' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
             <h2 className="text-base font-semibold text-slate-800 mb-2">Create New User Account</h2>
 
             {/* Employee No — dropdown from employee_configs */}
@@ -237,7 +237,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
                     className="px-3 py-2.5 rounded-lg text-xs font-semibold border-2 transition-all"
                     style={{
                       borderColor: form.role === r.value ? r.color : '#E2E8F0',
-                      background:  form.role === r.value ? r.bg    : '#F8FAFC',
+                      background:  form.role === r.value ? r.bg    : 'var(--page-bg)',
                       color:       form.role === r.value ? r.color : '#64748B',
                     }}>
                     {r.label}
@@ -249,7 +249,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
             {/* Custom email message toggle */}
             <div>
               <button type="button" onClick={() => setShowEmailMsg(v => !v)}
-                className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                className="flex items-center gap-2 text-sm text-primary hover:text-indigo-800 font-medium">
                 <ChevronDown className={`w-4 h-4 transition-transform ${showEmailMsg ? 'rotate-180' : ''}`} />
                 Custom email message (optional)
               </button>
@@ -263,7 +263,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
 
             <button onClick={handleCreate} disabled={submitting}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-semibold text-sm transition-all disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)' }}>
+              style={{ background: 'linear-gradient(135deg,var(--primary),#7C3AED)' }}>
               {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>
                           : <><UserPlus className="w-4 h-4" /> Create User & Send Email</>}
             </button>
@@ -281,7 +281,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
                   <strong>{createdResult.name}</strong> has been created. A welcome email with login instructions has been sent.
                 </p>
                 <div className="bg-white border border-emerald-200 rounded-lg p-4">
-                  <p className="text-xs text-slate-500 mb-1">Temporary Password (also sent via email)</p>
+                  <p className="text-xs text-gray-500 mb-1">Temporary Password (also sent via email)</p>
                   <div className="flex items-center gap-2">
                     <code className="text-base font-bold tracking-widest text-indigo-700 flex-1">
                       {showTempPw ? createdResult.tempPassword : '••••••••'}
@@ -290,7 +290,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
                       {showTempPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                     <button onClick={() => { navigator.clipboard.writeText(createdResult.tempPassword); toast.success('Copied!'); }}
-                      className="text-slate-400 hover:text-indigo-600">
+                      className="text-slate-400 hover:text-primary">
                       <Copy className="w-4 h-4" />
                     </button>
                   </div>
@@ -300,7 +300,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
                 </p>
               </div>
             ) : (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
+              <div className="bg-slate-50 border border-gray-200 rounded-xl p-6">
                 <h3 className="font-semibold text-slate-700 mb-3">How it works</h3>
                 <div className="space-y-3">
                   {[
@@ -324,23 +324,23 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
 
       {/* ── MANAGE USERS TAB ─────────────────────────────────────────────────── */}
       {tab === 'list' && (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
           {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-5 py-4 border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-5 py-4 border-b border-gray-100">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search name, email or employee ID…"
-                className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
               <option value="">All Roles</option>
               {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               <option value="SUPER_ADMIN">Super Admin</option>
             </select>
             <button onClick={fetchUsers} disabled={loadingUsers}
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors disabled:opacity-50">
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loadingUsers ? 'animate-spin' : ''}`} />
             </button>
           </div>
@@ -454,7 +454,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
                   </label>
                   <textarea value={resetMsg} onChange={e => setResetMsg(e.target.value)}
                     rows={3} placeholder="Leave blank to use the default reset message…"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
                 </div>
                 <div className="flex gap-3">
                   <button onClick={handleReset} disabled={resetting}
@@ -464,7 +464,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
                                : <><KeyRound className="w-4 h-4" />Reset & Send Email</>}
                   </button>
                   <button onClick={() => setResetTarget(null)}
-                    className="px-4 py-2.5 rounded-lg border border-slate-200 text-slate-600 text-sm hover:bg-slate-50">
+                    className="px-4 py-2.5 rounded-lg border border-gray-200 text-slate-600 text-sm hover:bg-slate-50">
                     Cancel
                   </button>
                 </div>
@@ -482,7 +482,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
                       {showTempPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                     <button onClick={() => { navigator.clipboard.writeText(resetResult); toast.success('Copied!'); }}
-                      className="text-slate-400 hover:text-indigo-600">
+                      className="text-slate-400 hover:text-primary">
                       <Copy className="w-4 h-4" />
                     </button>
                   </div>

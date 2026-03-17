@@ -21,7 +21,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
 type ReportType = 'summary' | 'employee' | 'project' | 'pending' | 'detailed';
 
 const REPORT_TYPES: { id: ReportType; label: string; icon: any; desc: string; color: string }[] = [
-  { id: 'summary',  label: 'Summary Report',  icon: BarChart3,   desc: 'High-level overview of all timesheets',      color: '#6366F1' },
+  { id: 'summary',  label: 'Summary Report',  icon: BarChart3,   desc: 'High-level overview of all timesheets',      color: 'var(--primary)' },
   { id: 'employee', label: 'Employee Report',  icon: User,        desc: 'Hours logged per employee breakdown',        color: '#8B5CF6' },
   { id: 'project',  label: 'Project Report',   icon: FileText,    desc: 'Timesheet distribution across projects',     color: '#06B6D4' },
   { id: 'pending',  label: 'Pending Report',   icon: AlertCircle, desc: 'All submitted timesheets awaiting approval', color: '#F59E0B' },
@@ -184,11 +184,11 @@ export default function Reports({ onBack }: { onBack: () => void }) {
   }, [filtered, employeeSummary, totalHours, approved, submitted, uniqueEmps, reportType, statusFilter]);
 
   return (
-    <div className="p-6 space-y-5" style={{ background: '#F8FAFC', minHeight: '100%' }}>
+    <div className="p-6 space-y-5" style={{ background: 'var(--page-bg)', minHeight: '100%' }}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-3 transition-colors">
+          <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-primary hover:text-indigo-800 font-medium mb-3 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Overview
           </button>
           <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
@@ -196,8 +196,8 @@ export default function Reports({ onBack }: { onBack: () => void }) {
             <span>Timesheets</span> <span>›</span>
             <span className="text-slate-600 font-medium">Reports</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900" style={{ letterSpacing: '-0.02em' }}>Reports</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Analyze, filter and export timesheet data</p>
+          <h1 className="text-2xl font-bold font-bold color-text-1" style={{ letterSpacing: '-0.02em' }}>Reports</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Analyze, filter and export timesheet data</p>
         </div>
         <button
           onClick={exportExcel}
@@ -230,27 +230,27 @@ export default function Reports({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Search + Filters bar */}
-      <div className="bg-white rounded-xl border border-slate-100 p-4">
+      <div className="bg-white rounded-xl border border-gray-100 p-4">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-48">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search by employee name..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-900 placeholder-slate-400"
-              onFocus={e => (e.currentTarget.style.borderColor = '#6366F1')}
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none font-bold color-text-1 placeholder-slate-400"
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
               onBlur={e => (e.currentTarget.style.borderColor = '#F1F5F9')}
             />
           </div>
 
           <select value={statusFilter} onChange={e => setStatus(e.target.value)}
-            className="pl-3 pr-8 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700 cursor-pointer">
+            className="pl-3 pr-8 py-2.5 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700 cursor-pointer">
             <option value="ALL">All Statuses</option>
             {['DRAFT','SUBMITTED','APPROVED','REJECTED'].map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
           {isAdmin && (
             <select value={empFilter} onChange={e => setEmpFilter(e.target.value)}
-              className="pl-3 pr-8 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700 cursor-pointer">
+              className="pl-3 pr-8 py-2.5 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700 cursor-pointer">
               <option value="ALL">All Employees</option>
               {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
             </select>
@@ -258,9 +258,9 @@ export default function Reports({ onBack }: { onBack: () => void }) {
 
           <button onClick={() => setShowFilters(v => !v)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors"
-            style={{ borderColor: activeFilters ? '#6366F1' : '#E2E8F0', color: activeFilters ? '#6366F1' : '#64748B', background: activeFilters ? '#EEF2FF' : '#FFFFFF' }}>
+            style={{ borderColor: activeFilters ? 'var(--primary)' : '#E2E8F0', color: activeFilters ? 'var(--primary)' : '#64748B', background: activeFilters ? 'var(--primary-tint)' : '#FFFFFF' }}>
             <Filter className="w-4 h-4" />
-            Filters {activeFilters > 0 && <span className="bg-indigo-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{activeFilters}</span>}
+            Filters {activeFilters > 0 && <span className="bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{activeFilters}</span>}
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
 
@@ -272,23 +272,23 @@ export default function Reports({ onBack }: { onBack: () => void }) {
         </div>
 
         {showFilters && (
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100 flex-wrap">
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 flex-wrap">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-slate-400" />
               <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700"
-                onFocus={e => (e.currentTarget.style.borderColor = '#6366F1')}
+                className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700"
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
                 onBlur={e => (e.currentTarget.style.borderColor = '#F1F5F9')}
               />
               <span className="text-slate-400 text-xs">to</span>
               <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700"
-                onFocus={e => (e.currentTarget.style.borderColor = '#6366F1')}
+                className="px-3 py-2 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700"
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
                 onBlur={e => (e.currentTarget.style.borderColor = '#F1F5F9')}
               />
             </div>
             <select value={projFilter} onChange={e => setProjFilter(e.target.value)}
-              className="pl-3 pr-8 py-2 rounded-lg text-sm bg-slate-50 border border-slate-100 outline-none text-slate-700">
+              className="pl-3 pr-8 py-2 rounded-lg text-sm bg-slate-50 border border-gray-100 outline-none text-slate-700">
               <option value="ALL">All Projects</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
             </select>
@@ -299,20 +299,20 @@ export default function Reports({ onBack }: { onBack: () => void }) {
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Hours', value: `${totalHours.toFixed(1)}h`, icon: Clock, color: '#6366F1', bg: '#EEF2FF' },
+          { label: 'Total Hours', value: `${totalHours.toFixed(1)}h`, icon: Clock, color: 'var(--primary)', bg: 'var(--primary-tint)' },
           { label: 'Approved', value: approved, icon: CheckCircle2, color: '#10B981', bg: '#ECFDF5' },
           { label: 'Pending Review', value: submitted, icon: AlertCircle, color: '#F59E0B', bg: '#FFFBEB' },
           { label: 'Employees', value: uniqueEmps, icon: Users, color: '#8B5CF6', bg: '#F5F3FF' },
         ].map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-4">
+            <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: s.bg }}>
                 <Icon className="w-5 h-5" style={{ color: s.color }} />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900" style={{ letterSpacing: '-0.02em' }}>{s.value}</div>
-                <div className="text-xs text-slate-500">{s.label}</div>
+                <div className="text-2xl font-bold font-bold color-text-1" style={{ letterSpacing: '-0.02em' }}>{s.value}</div>
+                <div className="text-xs text-gray-500">{s.label}</div>
               </div>
             </div>
           );
@@ -321,25 +321,25 @@ export default function Reports({ onBack }: { onBack: () => void }) {
 
       {/* Report content */}
       {loading ? (
-        <div className="bg-white rounded-xl border border-slate-100 p-12 text-center text-slate-400">
+        <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-slate-400">
           <div className="animate-pulse">Loading report data...</div>
         </div>
       ) : (
         <>
           {/* Employee Report */}
           {(reportType === 'employee' || reportType === 'summary') && employeeSummary.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
                 <Users className="w-4 h-4 text-violet-500" />
-                <h3 className="text-sm font-semibold text-slate-900">Hours by Employee</h3>
+                <h3 className="text-sm font-semibold font-bold color-text-1">Hours by Employee</h3>
                 <span className="ml-auto text-xs text-slate-400">{employeeSummary.length} employees</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100">
+                    <tr className="bg-slate-50 border-b border-gray-100">
                       {['Employee', 'Role', 'Total Hours', 'Timesheets', 'Approved', 'Pending', 'Utilisation'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -350,17 +350,17 @@ export default function Reports({ onBack }: { onBack: () => void }) {
                         <tr key={i} className="hover:bg-slate-50 transition-colors">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-primary">
                                 {e.name[0]}
                               </div>
                               <div>
-                                <div className="font-semibold text-slate-900 text-xs">{e.name}</div>
+                                <div className="font-semibold font-bold color-text-1 text-xs">{e.name}</div>
                                 <div className="text-xs text-slate-400">{e.employeeId}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-xs text-slate-500">{e.role.replace('_', ' ')}</td>
-                          <td className="px-4 py-3 font-bold text-slate-900">{e.total.toFixed(1)}h</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{e.role.replace('_', ' ')}</td>
+                          <td className="px-4 py-3 font-bold font-bold color-text-1">{e.total.toFixed(1)}h</td>
                           <td className="px-4 py-3 text-slate-600">{e.count}</td>
                           <td className="px-4 py-3">
                             <span className="text-xs font-medium px-2 py-0.5 rounded-md" style={{ background: '#ECFDF5', color: '#065F46' }}>{e.approved}</span>
@@ -373,7 +373,7 @@ export default function Reports({ onBack }: { onBack: () => void }) {
                               <div className="flex-1 h-2 bg-slate-100 rounded-full max-w-20">
                                 <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct > 80 ? '#10B981' : pct > 50 ? '#F59E0B' : '#EF4444' }} />
                               </div>
-                              <span className="text-xs text-slate-500">{pct}%</span>
+                              <span className="text-xs text-gray-500">{pct}%</span>
                             </div>
                           </td>
                         </tr>
@@ -387,10 +387,10 @@ export default function Reports({ onBack }: { onBack: () => void }) {
 
           {/* Project Report */}
           {(reportType === 'project' || reportType === 'summary') && projectSummary.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-cyan-500" />
-                <h3 className="text-sm font-semibold text-slate-900">Hours by Project</h3>
+                <h3 className="text-sm font-semibold font-bold color-text-1">Hours by Project</h3>
               </div>
               <div className="p-5 space-y-3">
                 {projectSummary.map((p, i) => {
@@ -398,14 +398,14 @@ export default function Reports({ onBack }: { onBack: () => void }) {
                   return (
                     <div key={i} className="flex items-center gap-4">
                       <div className="w-28 shrink-0">
-                        <div className="text-xs font-mono font-semibold px-1.5 py-0.5 rounded text-indigo-600 bg-indigo-50 truncate">{p.code}</div>
+                        <div className="text-xs font-mono font-semibold px-1.5 py-0.5 rounded text-primary bg-primary-tint truncate">{p.code}</div>
                       </div>
                       <div className="text-xs text-slate-600 w-32 truncate shrink-0">{p.name}</div>
                       <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all"
-                          style={{ width: `${(p.hours / maxH) * 100}%`, background: 'linear-gradient(90deg, #6366F1, #8B5CF6)' }} />
+                          style={{ width: `${(p.hours / maxH) * 100}%`, background: 'linear-gradient(90deg, var(--primary), #8B5CF6)' }} />
                       </div>
-                      <div className="text-sm font-bold text-slate-900 w-16 text-right">{p.hours.toFixed(1)}h</div>
+                      <div className="text-sm font-bold font-bold color-text-1 w-16 text-right">{p.hours.toFixed(1)}h</div>
                     </div>
                   );
                 })}
@@ -415,10 +415,10 @@ export default function Reports({ onBack }: { onBack: () => void }) {
 
           {/* Pending Report */}
           {reportType === 'pending' && (
-            <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-500" />
-                <h3 className="text-sm font-semibold text-slate-900">Pending Approvals</h3>
+                <h3 className="text-sm font-semibold font-bold color-text-1">Pending Approvals</h3>
                 <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: '#FFFBEB', color: '#B45309' }}>
                   {filtered.filter(t => t.status === 'SUBMITTED').length} pending
                 </span>
@@ -426,9 +426,9 @@ export default function Reports({ onBack }: { onBack: () => void }) {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100">
+                    <tr className="bg-slate-50 border-b border-gray-100">
                       {['Employee', 'Week', 'Hours', 'Submitted', 'Days Waiting'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -437,10 +437,10 @@ export default function Reports({ onBack }: { onBack: () => void }) {
                       const days = Math.floor((Date.now() - new Date(ts.submittedAt || ts.createdAt).getTime()) / 86400000);
                       return (
                         <tr key={ts.id} className="hover:bg-amber-50/50 transition-colors">
-                          <td className="px-4 py-3 font-semibold text-slate-900 text-xs">{ts.employee?.name}</td>
-                          <td className="px-4 py-3 text-xs text-slate-500">{fmt(ts.weekStartDate)}</td>
+                          <td className="px-4 py-3 font-semibold font-bold color-text-1 text-xs">{ts.employee?.name}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{fmt(ts.weekStartDate)}</td>
                           <td className="px-4 py-3 font-bold">{Number(ts.totalHours).toFixed(1)}h</td>
-                          <td className="px-4 py-3 text-xs text-slate-500">{ts.submittedAt ? fmt(ts.submittedAt) : '—'}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{ts.submittedAt ? fmt(ts.submittedAt) : '—'}</td>
                           <td className="px-4 py-3">
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ background: days > 3 ? '#FEF2F2' : '#FFFBEB', color: days > 3 ? '#991B1B' : '#B45309' }}>
                               {days}d
@@ -463,20 +463,20 @@ export default function Reports({ onBack }: { onBack: () => void }) {
 
           {/* Detailed / All Timesheets table */}
           {(reportType === 'detailed' || reportType === 'summary') && (
-            <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-sm font-semibold text-slate-900">All Timesheets</h3>
+                  <h3 className="text-sm font-semibold font-bold color-text-1">All Timesheets</h3>
                 </div>
                 <span className="text-xs text-slate-400">{filtered.length} records</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100">
+                    <tr className="bg-slate-50 border-b border-gray-100">
                       {['Employee', 'Week Start', 'Week End', 'Hours', 'Status', 'Submitted', 'Approved By'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -487,20 +487,20 @@ export default function Reports({ onBack }: { onBack: () => void }) {
                         <tr key={ts.id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600 shrink-0">
+                              <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                                 {ts.employee?.name?.[0] || '?'}
                               </div>
-                              <span className="font-medium text-slate-900 text-xs">{ts.employee?.name || '—'}</span>
+                              <span className="font-medium font-bold color-text-1 text-xs">{ts.employee?.name || '—'}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-xs text-slate-500">{fmt(ts.weekStartDate)}</td>
-                          <td className="px-4 py-3 text-xs text-slate-500">{fmt(ts.weekEndDate)}</td>
-                          <td className="px-4 py-3 font-bold text-slate-900">{Number(ts.totalHours).toFixed(1)}h</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{fmt(ts.weekStartDate)}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{fmt(ts.weekEndDate)}</td>
+                          <td className="px-4 py-3 font-bold font-bold color-text-1">{Number(ts.totalHours).toFixed(1)}h</td>
                           <td className="px-4 py-3">
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={sc}>{ts.status}</span>
                           </td>
                           <td className="px-4 py-3 text-xs text-slate-400">{ts.submittedAt ? fmt(ts.submittedAt) : '—'}</td>
-                          <td className="px-4 py-3 text-xs text-slate-500">{ts.approvedBy?.name || '—'}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{ts.approvedBy?.name || '—'}</td>
                         </tr>
                       );
                     })}

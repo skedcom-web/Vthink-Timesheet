@@ -60,7 +60,7 @@ function StatCard({ icon: Icon, label, value, color, bg }: {
         <Icon className="w-5 h-5" style={{ color }} />
       </div>
       <div>
-        <p className="text-xs font-medium text-slate-500 mb-0.5">{label}</p>
+        <p className="text-xs font-medium text-gray-500 mb-0.5">{label}</p>
         <p className="text-xl font-bold" style={{ color }}>{value}</p>
       </div>
     </div>
@@ -106,7 +106,7 @@ export default function TeamMemberOverview({
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
-      <span className="ml-2 text-slate-500 text-sm">Loading your timesheets…</span>
+      <span className="ml-2 text-gray-500 text-sm">Loading your timesheets…</span>
     </div>
   );
 
@@ -122,16 +122,16 @@ export default function TeamMemberOverview({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold font-bold color-text-1">
             Welcome back, <span style={{ color: '#059669' }}>{user?.name?.split(' ')[0]}</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Your complete timesheet history and weekly hours</p>
+          <p className="text-sm text-gray-500 mt-1">Your complete timesheet history and weekly hours</p>
         </div>
         {/* Quick action */}
         <button
           onClick={() => onNavigate('timesheet')}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg shrink-0"
-          style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
+          style={{ background: 'linear-gradient(135deg,var(--primary),#7C3AED)', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
         >
           <Clock className="w-4 h-4" /> Enter Timesheet <ArrowRight className="w-3.5 h-3.5" />
         </button>
@@ -139,7 +139,7 @@ export default function TeamMemberOverview({
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Clock}        label="Total Hours Logged" value={`${totalHours.toFixed(1)}h`} color="#4F46E5" bg="#EDE9FE" />
+        <StatCard icon={Clock}        label="Total Hours Logged" value={`${totalHours.toFixed(1)}h`} color="var(--primary)" bg="var(--primary-tint)" />
         <StatCard icon={CheckCircle2} label="Approved Weeks"     value={approvedCount}               color="#059669" bg="#D1FAE5" />
         <StatCard icon={AlertCircle}  label="Pending Approval"   value={pendingCount}                color="#D97706" bg="#FEF3C7" />
         <StatCard icon={FileText}     label="Drafts / Rejected"  value={draftCount + rejectedCount}  color="#64748B" bg="#F1F5F9" />
@@ -151,15 +151,15 @@ export default function TeamMemberOverview({
           {draftCount > 0 && (
             <button onClick={() => onNavigate('timesheet')}
               className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed text-left hover:shadow-md transition-all"
-              style={{ borderColor: '#6366F1', background: '#EEF2FF' }}>
-              <Clock className="w-7 h-7 shrink-0" style={{ color: '#6366F1' }} />
+              style={{ borderColor: 'var(--primary)', background: 'var(--primary-tint)' }}>
+              <Clock className="w-7 h-7 shrink-0" style={{ color: 'var(--primary)' }} />
               <div>
                 <div className="text-sm font-bold" style={{ color: '#3730A3' }}>
                   {draftCount} Draft Timesheet{draftCount > 1 ? 's' : ''} — Submit Now
                 </div>
-                <div className="text-xs" style={{ color: '#6366F1' }}>Click to open and submit for approval</div>
+                <div className="text-xs" style={{ color: 'var(--primary)' }}>Click to open and submit for approval</div>
               </div>
-              <ArrowRight className="w-4 h-4 ml-auto shrink-0" style={{ color: '#6366F1' }} />
+              <ArrowRight className="w-4 h-4 ml-auto shrink-0" style={{ color: 'var(--primary)' }} />
             </button>
           )}
           {rejectedCount > 0 && (
@@ -181,7 +181,7 @@ export default function TeamMemberOverview({
 
       {/* Weekly hours bar chart */}
       {chartData.length > 0 && (
-        <div className="rounded-2xl p-5 bg-white border border-slate-100 shadow-sm">
+        <div className="rounded-2xl p-5 bg-white border border-gray-100 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-indigo-400" />
             Hours Logged — Last {chartData.length} Week{chartData.length !== 1 ? 's' : ''}
@@ -209,7 +209,7 @@ export default function TeamMemberOverview({
           {/* Legend */}
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-50">
             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-              <span key={key} className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span key={key} className="flex items-center gap-1.5 text-xs text-gray-500">
                 <span className="w-2.5 h-2.5 rounded-sm" style={{ background: cfg.color }} />
                 {cfg.label}
               </span>
@@ -219,8 +219,8 @@ export default function TeamMemberOverview({
       )}
 
       {/* Timesheet history */}
-      <div className="rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+      <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
           <Calendar className="w-4 h-4 text-indigo-400" />
           <h2 className="text-sm font-semibold text-slate-700">Timesheet History</h2>
           <span className="ml-auto text-xs text-slate-400">
@@ -235,7 +235,7 @@ export default function TeamMemberOverview({
             <p className="text-xs text-slate-300 mt-1">Click <strong>Enter Timesheet</strong> to log your first week</p>
             <button onClick={() => onNavigate('timesheet')}
               className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-semibold"
-              style={{ background: 'linear-gradient(135deg,#6366F1,#7C3AED)' }}>
+              style={{ background: 'linear-gradient(135deg,var(--primary),#7C3AED)' }}>
               <Clock className="w-3.5 h-3.5" /> Enter Timesheet
             </button>
           </div>
@@ -300,20 +300,20 @@ export default function TeamMemberOverview({
 
                   {/* Expanded daily breakdown */}
                   {isExpanded && (
-                    <div className="px-5 pb-5 bg-slate-50 border-t border-slate-100">
+                    <div className="px-5 pb-5 bg-slate-50 border-t border-gray-100">
                       {(!ts.entries || ts.entries.length === 0) ? (
                         <p className="text-xs text-slate-400 pt-4">No entry details available.</p>
                       ) : (
-                        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                        <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="bg-slate-50 border-b border-slate-100">
-                                <th className="text-left px-3 py-2.5 text-slate-500 font-semibold">Project</th>
-                                <th className="text-left px-3 py-2.5 text-slate-500 font-semibold">Task</th>
+                              <tr className="bg-slate-50 border-b border-gray-100">
+                                <th className="text-left px-3 py-2.5 text-gray-500 font-semibold">Project</th>
+                                <th className="text-left px-3 py-2.5 text-gray-500 font-semibold">Task</th>
                                 {DAY_LABELS.map(d => (
-                                  <th key={d} className="px-2 py-2.5 text-center text-slate-500 font-semibold">{d}</th>
+                                  <th key={d} className="px-2 py-2.5 text-center text-gray-500 font-semibold">{d}</th>
                                 ))}
-                                <th className="px-3 py-2.5 text-center text-slate-500 font-semibold">Total</th>
+                                <th className="px-3 py-2.5 text-center text-gray-500 font-semibold">Total</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
@@ -340,7 +340,7 @@ export default function TeamMemberOverview({
                               ))}
                             </tbody>
                             <tfoot>
-                              <tr className="bg-indigo-50">
+                              <tr className="bg-primary-tint">
                                 <td colSpan={2} className="px-3 py-2.5 text-indigo-700 font-bold text-xs">Week Total</td>
                                 {DAY_KEYS.map(dk => {
                                   const dayTotal = ts.entries!.reduce((s, e) => s + Number((e as any)[dk] ?? 0), 0);

@@ -1,11 +1,55 @@
-import { useState } from 'react';
-import { Lock, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Lock, Eye, EyeOff, ShieldCheck, ArrowRight, BarChart3, Users, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { usersApi } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { toast } from './ui/Toast';
 
+// ── CRITICAL: PwField MUST be defined OUTSIDE the parent component.
+// If defined inside, React recreates the component on every state change,
+// unmounting the input and losing focus after every keystroke.
+interface PwFieldProps {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  show: boolean;
+  onToggleShow: () => void;
+  placeholder: string;
+}
+function PwField({ id, value, onChange, show, onToggleShow, placeholder }: PwFieldProps) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <Lock style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', width:16, height:16, color:'#9CA3AF', pointerEvents:'none' }} />
+      <input
+        id={id}
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoComplete={id === 'cur-pw' ? 'current-password' : 'new-password'}
+        style={{
+          width:'100%', padding:'12px 44px', border:'1.5px solid #D1D5DB', borderRadius:10,
+          fontSize:15, color:'#111928', background:'#fff', outline:'none',
+          fontFamily:"'Inter',system-ui,sans-serif", transition:'border-color 0.15s',
+          boxSizing:'border-box',
+        }}
+        onFocus={e  => (e.currentTarget.style.borderColor = '#1A56DB')}
+        onBlur={e   => (e.currentTarget.style.borderColor = '#D1D5DB')}
+      />
+      <button
+        type="button"
+        onClick={onToggleShow}
+        tabIndex={-1}
+        style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#9CA3AF', padding:4, display:'flex' }}
+      >
+        {show ? <EyeOff style={{ width:16, height:16 }} /> : <Eye style={{ width:16, height:16 }} />}
+      </button>
+    </div>
+  );
+}
+
 export default function ForceChangePassword() {
   const { setMustChange, logout } = useAuthStore();
+
   const [currentPw, setCurrentPw] = useState('');
   const [newPw,     setNewPw]     = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -15,17 +59,22 @@ export default function ForceChangePassword() {
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
 
+  // Stable callbacks — won't cause PwField re-renders
+  const toggleCur = useCallback(() => setShowCur(v => !v), []);
+  const toggleNew = useCallback(() => setShowNew(v => !v), []);
+  const toggleCon = useCallback(() => setShowCon(v => !v), []);
+
   const strength = (() => {
     if (!newPw) return { score: 0, label: '', color: '' };
     let s = 0;
-    if (newPw.length >= 8)         s++;
-    if (/[A-Z]/.test(newPw))       s++;
-    if (/[0-9]/.test(newPw))       s++;
+    if (newPw.length >= 8)          s++;
+    if (/[A-Z]/.test(newPw))        s++;
+    if (/[0-9]/.test(newPw))        s++;
     if (/[^A-Za-z0-9]/.test(newPw)) s++;
     return {
       score: s,
       label: ['', 'Weak', 'Fair', 'Good', 'Strong'][s],
-      color: ['', '#DC2626', '#F59E0B', '#3B82F6', '#16A34A'][s],
+      color: ['', '#E02424', '#C27803', '#3B82F6', '#0E9F6E'][s],
     };
   })();
 
@@ -50,119 +99,227 @@ export default function ForceChangePassword() {
   };
 
   const requirements = [
-    { ok: newPw.length >= 8,          label: 'At least 8 characters' },
-    { ok: /[A-Z]/.test(newPw),        label: 'At least one uppercase letter' },
-    { ok: /[0-9]/.test(newPw),        label: 'At least one number' },
-    { ok: /[^A-Za-z0-9]/.test(newPw), label: 'At least one special character' },
+    { ok: newPw.length >= 8,           label: 'At least 8 characters' },
+    { ok: /[A-Z]/.test(newPw),         label: 'At least one uppercase letter' },
+    { ok: /[0-9]/.test(newPw),         label: 'At least one number' },
+    { ok: /[^A-Za-z0-9]/.test(newPw),  label: 'At least one special character' },
   ];
 
-  const PwField = ({ val, setVal, show, setShow, placeholder }: any) => (
-    <div style={{ position:'relative' }}>
-      <Lock style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', width:15, height:15, color:'#9CA3AF' }} />
-      <input
-        type={show ? 'text' : 'password'}
-        value={val}
-        onChange={e => setVal(e.target.value)}
-        placeholder={placeholder}
-        className="input"
-        style={{ paddingLeft:36, paddingRight:36 }}
-      />
-      <button type="button" onClick={() => setShow((v: boolean) => !v)}
-        style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#9CA3AF' }}>
-        {show ? <EyeOff style={{ width:15, height:15 }} /> : <Eye style={{ width:15, height:15 }} />}
-      </button>
-    </div>
-  );
-
   return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:16, background:'#F9FAFB' }}>
-      <div style={{ width:'100%', maxWidth:440 }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif" }}>
+
+      {/* ── Left panel — same branding as Login ── */}
+      <div
+        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10 relative overflow-hidden"
+        style={{ background:'linear-gradient(135deg, #4F38F6 0%, #432DD7 50%, #5D0EC0 100%)' }}
+      >
+        {/* Decorative circles */}
+        <div style={{ position:'absolute', top:-80, right:-80, width:300, height:300, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.10)' }} />
+        <div style={{ position:'absolute', bottom:-120, left:-60, width:400, height:400, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.10)' }} />
+        <div style={{ position:'absolute', top:'40%', left:'60%', width:10, height:10, borderRadius:'50%', background:'rgba(255,255,255,0.20)' }} />
+        <div style={{ position:'absolute', top:'25%', left:'80%', width:7,  height:7,  borderRadius:'50%', background:'rgba(255,255,255,0.15)' }} />
+        <div style={{ position:'absolute', top:'65%', left:'85%', width:8,  height:8,  borderRadius:'50%', background:'rgba(255,255,255,0.15)' }} />
 
         {/* Logo */}
-        <div style={{ textAlign:'center', marginBottom:28 }}>
-          <div style={{ display:'inline-flex', alignItems:'baseline' }}>
-            <span style={{ fontSize:26, fontWeight:700, color:'#EF4444' }}>v</span>
-            <span style={{ fontSize:26, fontWeight:700, color:'#111827' }}>Think</span>
-            <span style={{ fontSize:14, fontWeight:700, color:'#EF4444', marginLeft:2 }}>*</span>
+        <div>
+          <div style={{ display:'flex', alignItems:'baseline' }}>
+            <span style={{ fontSize:24, fontWeight:700, color:'#F87171' }}>v</span>
+            <span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>Think</span>
+            <span style={{ fontSize:14, fontWeight:700, color:'#F87171', marginLeft:2 }}>*</span>
+            <span style={{ fontSize:10, color:'rgba(255,255,255,0.5)', marginLeft:2 }}>®</span>
+          </div>
+          <p style={{ color:'rgba(255,255,255,0.6)', fontSize:12, marginTop:4 }}>Timesheet Management System</p>
+        </div>
+
+        {/* Hero content */}
+        <div style={{ position:'relative', zIndex:10 }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 14px', background:'rgba(255,255,255,0.10)', borderRadius:99, marginBottom:24 }}>
+            <span style={{ width:8, height:8, borderRadius:'50%', background:'#4ADE80', display:'inline-block' }} />
+            <span style={{ fontSize:12, color:'#fff' }}>All Systems Operational</span>
+          </div>
+          <h1 style={{ fontSize:34, fontWeight:600, color:'#fff', lineHeight:1.3, margin:'0 0 16px' }}>
+            Almost there!<br />
+            <span style={{ opacity:0.85 }}>Set your new password</span>
+          </h1>
+          <p style={{ fontSize:13, color:'#C7D2FF', lineHeight:1.7, maxWidth:360, margin:'0 0 32px' }}>
+            For your security, you need to set a new password before accessing vThink Timesheet.
+            Choose something strong that you'll remember.
+          </p>
+
+          {/* Requirement preview card */}
+          <div style={{ background:'rgba(255,255,255,0.10)', backdropFilter:'blur(8px)', borderRadius:16, padding:20, maxWidth:380, border:'1px solid rgba(255,255,255,0.12)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:14 }}>
+              <ShieldCheck style={{ width:16, height:16, color:'#86EFAC' }} />
+              <span style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.8)' }}>Password Requirements</span>
+            </div>
+            {[
+              'At least 8 characters long',
+              'One uppercase letter (A-Z)',
+              'One number (0-9)',
+              'One special character (@#$! etc.)',
+            ].map((r, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+                <div style={{ width:16, height:16, borderRadius:'50%', background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <span style={{ fontSize:9, color:'rgba(255,255,255,0.7)' }}>✓</span>
+                </div>
+                <span style={{ fontSize:12, color:'rgba(255,255,255,0.7)' }}>{r}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="card" style={{ padding:32 }}>
-          {/* Header */}
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
-            <div style={{ width:40, height:40, borderRadius:10, background:'#FFFBEB', border:'1px solid #FDE68A', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <ShieldCheck style={{ width:20, height:20, color:'#D97706' }} />
-            </div>
+        {/* Bottom badge */}
+        <div>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.10)', borderRadius:10, padding:'8px 14px', border:'1px solid rgba(255,255,255,0.12)' }}>
+            <Clock style={{ width:16, height:16, color:'#FCD34D' }} />
             <div>
-              <h2 style={{ fontSize:18, fontWeight:600, color:'var(--text-1)', margin:0 }}>Set New Password</h2>
-              <p style={{ fontSize:12, color:'var(--text-2)', margin:0 }}>Required before you can continue</p>
+              <p style={{ fontSize:10, color:'rgba(255,255,255,0.6)', margin:0 }}>One-time action</p>
+              <p style={{ fontSize:14, fontWeight:600, color:'#fff', margin:0 }}>First login password change</p>
             </div>
-          </div>
-
-          {/* Warning */}
-          <div style={{ background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius:8, padding:'10px 14px', marginBottom:20, fontSize:13, color:'#92400E' }}>
-            Your account was created with a temporary password. Please set a new secure password to proceed.
-          </div>
-
-          {error && (
-            <div style={{ background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:8, padding:'10px 14px', marginBottom:16, fontSize:13, color:'#DC2626', display:'flex', gap:8 }}>
-              <span>⚠</span><span>{error}</span>
-            </div>
-          )}
-
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div>
-              <label className="label">Temporary Password</label>
-              <PwField val={currentPw} setVal={setCurrentPw} show={showCur} setShow={setShowCur} placeholder="Enter your temporary password" />
-            </div>
-
-            <div>
-              <label className="label">New Password</label>
-              <PwField val={newPw} setVal={setNewPw} show={showNew} setShow={setShowNew} placeholder="Min 8 chars, upper, number, special" />
-              {newPw && (
-                <div style={{ marginTop:8 }}>
-                  <div style={{ display:'flex', gap:4, marginBottom:4 }}>
-                    {[1,2,3,4].map(i => (
-                      <div key={i} style={{ flex:1, height:4, borderRadius:99, background: i <= strength.score ? strength.color : 'var(--border-mid)', transition:'background 0.2s' }} />
-                    ))}
-                  </div>
-                  <p style={{ fontSize:11, color: strength.color, margin:0 }}>{strength.label}</p>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="label">Confirm New Password</label>
-              <PwField val={confirmPw} setVal={setConfirmPw} show={showCon} setShow={setShowCon} placeholder="Re-enter new password" />
-              {confirmPw && confirmPw !== newPw && (
-                <p style={{ fontSize:11, color:'#DC2626', marginTop:4 }}>Passwords do not match</p>
-              )}
-            </div>
-
-            {/* Requirements */}
-            <div style={{ background:'var(--border)', borderRadius:8, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}>
-              <p style={{ fontSize:11, fontWeight:600, color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>Requirements</p>
-              {requirements.map(r => (
-                <div key={r.label} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <div style={{ width:16, height:16, borderRadius:'50%', background: r.ok ? '#DCFCE7' : '#fff', border: r.ok ? 'none' : '1px solid var(--border-mid)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    {r.ok && <span style={{ color:'#16A34A', fontSize:9, fontWeight:700 }}>✓</span>}
-                  </div>
-                  <span style={{ fontSize:12, color: r.ok ? '#16A34A' : 'var(--text-3)' }}>{r.label}</span>
-                </div>
-              ))}
-            </div>
-
-            <button onClick={handleSubmit} disabled={loading} className="btn-primary"
-              style={{ width:'100%', justifyContent:'center', padding:'11px 16px', borderRadius:10, fontSize:14 }}>
-              {loading ? 'Updating…' : <><span>Set New Password</span><ArrowRight style={{ width:16, height:16 }} /></>}
-            </button>
-
-            <button onClick={logout} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-3)', textAlign:'center' }}>
-              Sign out instead
-            </button>
           </div>
         </div>
       </div>
+
+      {/* ── Right panel — password change form ── */}
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F9FAFB', padding:24, overflowY:'auto' }}>
+        <div style={{ width:'100%', maxWidth:420 }}>
+
+          {/* Logo (right panel) */}
+          <div style={{ textAlign:'center', marginBottom:28 }}>
+            <div style={{ display:'inline-flex', alignItems:'baseline' }}>
+              <span style={{ fontSize:28, fontWeight:700, color:'#E02424' }}>v</span>
+              <span style={{ fontSize:28, fontWeight:700, color:'#111928' }}>Think</span>
+              <span style={{ fontSize:16, fontWeight:700, color:'#E02424', marginLeft:2 }}>*</span>
+            </div>
+          </div>
+
+          {/* Header */}
+          <div style={{ textAlign:'center', marginBottom:24 }}>
+            <div style={{ width:48, height:48, borderRadius:'50%', background:'#FFFBEB', border:'2px solid #FDE68A', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+              <ShieldCheck style={{ width:22, height:22, color:'#C27803' }} />
+            </div>
+            <h2 style={{ fontSize:22, fontWeight:600, color:'#111928', margin:'0 0 4px' }}>Set New Password</h2>
+            <p style={{ fontSize:14, color:'#6B7280', margin:0 }}>Required before you can continue</p>
+          </div>
+
+          {/* Warning banner */}
+          <div style={{ background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius:10, padding:'10px 14px', marginBottom:20, fontSize:13, color:'#92400E' }}>
+            Your account was created with a temporary password. Please set a new secure password to proceed.
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div style={{ background:'#FDE8E8', border:'1px solid #FECACA', borderRadius:10, padding:'10px 14px', marginBottom:16, fontSize:13, color:'#9B1C1C', display:'flex', gap:8 }}>
+              <span style={{ flexShrink:0 }}>⚠</span><span>{error}</span>
+            </div>
+          )}
+
+          {/* Form card */}
+          <div style={{ background:'#fff', borderRadius:16, padding:28, border:'1px solid #E5E7EB', boxShadow:'0 1px 3px rgba(0,0,0,0.06)' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+
+              {/* Temporary password */}
+              <div>
+                <label htmlFor="cur-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'#111928', marginBottom:6 }}>
+                  Temporary Password
+                </label>
+                <PwField
+                  id="cur-pw"
+                  value={currentPw}
+                  onChange={setCurrentPw}
+                  show={showCur}
+                  onToggleShow={toggleCur}
+                  placeholder="Enter your temporary password"
+                />
+              </div>
+
+              {/* New password */}
+              <div>
+                <label htmlFor="new-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'#111928', marginBottom:6 }}>
+                  New Password
+                </label>
+                <PwField
+                  id="new-pw"
+                  value={newPw}
+                  onChange={setNewPw}
+                  show={showNew}
+                  onToggleShow={toggleNew}
+                  placeholder="Min 8 chars, uppercase, number, special"
+                />
+                {/* Strength bar */}
+                {newPw && (
+                  <div style={{ marginTop:8 }}>
+                    <div style={{ display:'flex', gap:4, marginBottom:4 }}>
+                      {[1,2,3,4].map(i => (
+                        <div key={i} style={{ flex:1, height:4, borderRadius:99, background: i <= strength.score ? strength.color : '#E5E7EB', transition:'background 0.2s' }} />
+                      ))}
+                    </div>
+                    {strength.label && <p style={{ fontSize:12, color:strength.color, margin:0 }}>{strength.label}</p>}
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm password */}
+              <div>
+                <label htmlFor="con-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'#111928', marginBottom:6 }}>
+                  Confirm New Password
+                </label>
+                <PwField
+                  id="con-pw"
+                  value={confirmPw}
+                  onChange={setConfirmPw}
+                  show={showCon}
+                  onToggleShow={toggleCon}
+                  placeholder="Re-enter new password"
+                />
+                {confirmPw && confirmPw !== newPw && (
+                  <p style={{ fontSize:12, color:'#E02424', margin:'4px 0 0' }}>Passwords do not match</p>
+                )}
+              </div>
+
+              {/* Requirements checklist */}
+              <div style={{ background:'#F9FAFB', borderRadius:10, padding:'12px 14px' }}>
+                <p style={{ fontSize:11, fontWeight:600, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Requirements</p>
+                {requirements.map(r => (
+                  <div key={r.label} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                    <div style={{ width:16, height:16, borderRadius:'50%', background: r.ok ? '#DEF7EC' : '#fff', border: r.ok ? 'none' : '1px solid #E5E7EB', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      {r.ok && <span style={{ color:'#0E9F6E', fontSize:9, fontWeight:700 }}>✓</span>}
+                    </div>
+                    <span style={{ fontSize:12, color: r.ok ? '#0E9F6E' : '#9CA3AF' }}>{r.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Submit */}
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                style={{
+                  width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+                  padding:'13px 16px', borderRadius:12, border:'none', cursor: loading ? 'not-allowed' : 'pointer',
+                  background: loading ? '#93C5FD' : 'linear-gradient(135deg, #1A56DB 0%, #1447B5 100%)',
+                  color:'#fff', fontSize:15, fontWeight:600, transition:'opacity 0.15s',
+                  fontFamily:"'Inter',system-ui,sans-serif",
+                }}
+              >
+                {loading
+                  ? <><Loader2 style={{ width:16, height:16, animation:'spin 1s linear infinite' }} /> Updating...</>
+                  : <><span>Set New Password</span><ArrowRight style={{ width:16, height:16 }} /></>
+                }
+              </button>
+            </div>
+          </div>
+
+          <button
+            onClick={logout}
+            style={{ display:'block', margin:'16px auto 0', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#9CA3AF', textAlign:'center' }}
+          >
+            Sign out instead
+          </button>
+        </div>
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
