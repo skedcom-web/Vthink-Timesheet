@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -54,5 +54,15 @@ export class TimesheetsController {
   @ApiBody({ schema: { properties: { reason: { type: 'string' } } } })
   reject(@Param('id') id: string, @CurrentUser() user: any, @Body('reason') reason?: string) {
     return this.timesheetsService.reject(id, user.id, reason);
+  }
+
+  @Put(':id/recall')
+  recall(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.timesheetsService.recall(id, user.id, user.role);
+  }
+
+  @Delete(':id')
+  deleteDraft(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.timesheetsService.deleteDraft(id, user.id);
   }
 }

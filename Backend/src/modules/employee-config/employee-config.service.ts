@@ -12,16 +12,22 @@ export class EmployeeConfigService implements OnModuleInit {
     try {
       await this.prisma.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS "employee_configs" (
-          "id"          TEXT NOT NULL,
-          "employeeNo"  TEXT NOT NULL,
-          "name"        TEXT NOT NULL,
-          "designation" TEXT,
-          "email"       TEXT,
-          "active"      BOOLEAN NOT NULL DEFAULT true,
-          "createdAt"   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          "updatedAt"   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "id"                TEXT NOT NULL,
+          "employeeNo"        TEXT NOT NULL,
+          "name"              TEXT NOT NULL,
+          "designation"       TEXT,
+          "email"             TEXT,
+          "managerEmployeeNo" TEXT,
+          "active"            BOOLEAN NOT NULL DEFAULT true,
+          "createdAt"         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt"         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
           CONSTRAINT "employee_configs_pkey" PRIMARY KEY ("id")
         );
+      `);
+      // Add column if table already existed without it (safe migration)
+      await this.prisma.$executeRawUnsafe(`
+        ALTER TABLE employee_configs
+          ADD COLUMN IF NOT EXISTS "managerEmployeeNo" TEXT;
       `);
       await this.prisma.$executeRawUnsafe(`
         CREATE UNIQUE INDEX IF NOT EXISTS "employee_configs_employeeNo_key"
@@ -60,10 +66,11 @@ export class EmployeeConfigService implements OnModuleInit {
       return -1;
     };
 
-    const empNoCol  = getCol('employee number', 'employee no', 'emp no', 'emp id', 'employee id');
-    const nameCol   = getCol('employee name', 'name');
-    const desgCol   = getCol('designation', 'curr.designation', 'title', 'position');
-    const emailCol  = getCol('email', 'e-mail', 'mail');
+    const empNoCol     = getCol('employee number', 'employee no', 'emp no', 'emp id', 'employee id');
+    const nameCol      = getCol('employee name', 'name');
+    const desgCol      = getCol('designation', 'curr.designation', 'title', 'position');
+    const emailCol     = getCol('email', 'e-mail', 'mail');
+    const managerCol   = getCol('manager employee no', 'manager emp no', 'manager id', 'manager employee id', 'manager no', 'manager');
 
     if (nameCol === -1)
       throw new BadRequestException(
@@ -77,10 +84,11 @@ export class EmployeeConfigService implements OnModuleInit {
       const name = c(nameCol);
       if (!name) return;
       parsed.push({
-        employeeNo:  c(empNoCol) || `EMP${String(rowNum).padStart(4, '0')}`,
+        employeeNo:        c(empNoCol) || `EMP${String(rowNum).padStart(4, '0')}`,
         name,
-        designation: c(desgCol)  || null,
-        email:       c(emailCol) || null,
+        designation:       c(desgCol)  || null,
+        email:             c(emailCol) || null,
+        managerEmployeeNo: c(managerCol) || null,
       });
     });
 
@@ -99,12 +107,14 @@ export class EmployeeConfigService implements OnModuleInit {
       byDesignation[desgKey] = (byDesignation[desgKey] || 0) + 1;
 
       await this.prisma.$executeRawUnsafe(
-        `INSERT INTO employee_configs (id, "employeeNo", name, designation, email, active)
-         VALUES ($1, $2, $3, $4, $5, true)
+        `INSERT INTO employee_configs (id, "employeeNo", name, designation, email, "managerEmployeeNo", active)
+         VALUES ($1, $2, $3, $4, $5, $6, true)
          ON CONFLICT ("employeeNo") DO UPDATE
            SET name = EXCLUDED.name, designation = EXCLUDED.designation,
-               email = EXCLUDED.email, active = true, "updatedAt" = NOW()`,
-        crypto.randomUUID(), row.employeeNo, row.name, row.designation, row.email
+               email = EXCLUDED.email,
+               "managerEmployeeNo" = EXCLUDED."managerEmployeeNo",
+               active = true, "updatedAt" = NOW()`,
+        crypto.randomUUID(), row.employeeNo, row.name, row.designation, row.email, row.managerEmployeeNo
       );
     }
 
@@ -129,22 +139,26 @@ export class EmployeeConfigService implements OnModuleInit {
 
   async getAll(): Promise<any[]> {
     return this.prisma.$queryRawUnsafe<any[]>(
-      `SELECT id, "employeeNo", name, designation, email
+      `SELECT id, "employeeNo", name, designation, email, "managerEmployeeNo"
        FROM employee_configs WHERE active = true ORDER BY name ASC`
     );
   }
 
   async getByName(name: string): Promise<any | null> {
     const rows = await this.prisma.$queryRawUnsafe<any[]>(
-      `SELECT id, "employeeNo", name, designation, email
+      `SELECT id, "employeeNo", name, designation, email, "managerEmployeeNo"
        FROM employee_configs WHERE LOWER(name) = LOWER($1) AND active = true LIMIT 1`,
       name
     );
     return rows[0] ?? null;
   }
 
-  async getSummary(): Promise<{ total: number; byDesignation: { designation: string; count: number }[] }> {
-    const [totalRows, byDesgRows] = await Promise.all([
+  async getSummary(): Promise<{
+    total: number;
+    byDesignation: { designation: string; count: number }[];
+    byManager: { managerEmployeeNo: string; count: number }[];
+  }> {
+    const [totalRows, byDesgRows, byMgrRows] = await Promise.all([
       this.prisma.$queryRawUnsafe<any[]>(
         `SELECT COUNT(*)::int AS count FROM employee_configs WHERE active = true`
       ),
@@ -153,10 +167,16 @@ export class EmployeeConfigService implements OnModuleInit {
          FROM employee_configs WHERE active = true
          GROUP BY designation ORDER BY count DESC`
       ),
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT COALESCE("managerEmployeeNo", 'Unassigned') AS "managerEmployeeNo", COUNT(*)::int AS count
+         FROM employee_configs WHERE active = true
+         GROUP BY "managerEmployeeNo" ORDER BY count DESC`
+      ),
     ]);
     return {
       total:         Number(totalRows[0]?.count ?? 0),
       byDesignation: byDesgRows.map(r => ({ designation: r.designation, count: Number(r.count) })),
+      byManager:     byMgrRows.map(r => ({ managerEmployeeNo: r.managerEmployeeNo, count: Number(r.count) })),
     };
   }
 }

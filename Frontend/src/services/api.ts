@@ -41,11 +41,12 @@ export const projectsApi = {
 };
 
 export const tasksApi = {
-  create:    (data: any)              => api.post('/api/v1/tasks', data).then(r => r.data),
-  update:    (id: string, data: any)  => api.put(`/api/v1/tasks/${id}`, data).then(r => r.data),
-  getAll:    (projectId?: string)     => api.get('/api/v1/tasks', { params: projectId ? { projectId } : {} }).then(r => r.data),
-  getActive: (projectId?: string)     => api.get('/api/v1/tasks', { params: { ...(projectId ? { projectId } : {}), activeOnly: 'true' } }).then(r => r.data),
-  getOne:    (id: string)             => api.get(`/api/v1/tasks/${id}`).then(r => r.data),
+  create:        (data: any)              => api.post('/api/v1/tasks', data).then(r => r.data),
+  update:        (id: string, data: any)  => api.put(`/api/v1/tasks/${id}`, data).then(r => r.data),
+  getAll:        (projectId?: string)     => api.get('/api/v1/tasks', { params: projectId ? { projectId } : {} }).then(r => r.data),
+  getActive:     (projectId?: string)     => api.get('/api/v1/tasks', { params: { ...(projectId ? { projectId } : {}), activeOnly: 'true' } }).then(r => r.data),
+  getOne:        (id: string)             => api.get(`/api/v1/tasks/${id}`).then(r => r.data),
+  getMyAssigned: ()                       => api.get('/api/v1/tasks/my-assigned').then(r => r.data),
 };
 
 export const assignmentsApi = {
@@ -54,13 +55,15 @@ export const assignmentsApi = {
 };
 
 export const timesheetsApi = {
-  save:       (data: any)                   => api.post('/api/v1/timesheets', data).then(r => r.data),
-  submit:     (id: string)                  => api.put(`/api/v1/timesheets/${id}/submit`).then(r => r.data),
-  approve:    (id: string)                  => api.put(`/api/v1/timesheets/${id}/approve`).then(r => r.data),
-  reject:     (id: string, reason?: string) => api.put(`/api/v1/timesheets/${id}/reject`, { reason }).then(r => r.data),
-  getAll:     ()                            => api.get('/api/v1/timesheets').then(r => r.data),
-  getPending: ()                            => api.get('/api/v1/timesheets/pending').then(r => r.data),
-  getMyWeek:  (weekStartDate: string)       => api.get('/api/v1/timesheets/week', { params: { weekStartDate } }).then(r => r.data),
+  save:        (data: any)                   => api.post('/api/v1/timesheets', data).then(r => r.data),
+  submit:      (id: string)                  => api.put(`/api/v1/timesheets/${id}/submit`).then(r => r.data),
+  recall:      (id: string)                  => api.put(`/api/v1/timesheets/${id}/recall`).then(r => r.data),
+  deleteDraft: (id: string)                  => api.delete(`/api/v1/timesheets/${id}`).then(r => r.data),
+  approve:     (id: string)                  => api.put(`/api/v1/timesheets/${id}/approve`).then(r => r.data),
+  reject:      (id: string, reason?: string) => api.put(`/api/v1/timesheets/${id}/reject`, { reason }).then(r => r.data),
+  getAll:      ()                            => api.get('/api/v1/timesheets').then(r => r.data),
+  getPending:  ()                            => api.get('/api/v1/timesheets/pending').then(r => r.data),
+  getMyWeek:   (weekStartDate: string)       => api.get('/api/v1/timesheets/week', { params: { weekStartDate } }).then(r => r.data),
 };
 
 export const usersApi = {
@@ -69,6 +72,7 @@ export const usersApi = {
   create:            (data: any)           => api.post('/api/v1/users', data).then(r => r.data),
   revoke:            (id: string)          => api.patch(`/api/v1/users/${id}/revoke`).then(r => r.data),
   restore:           (id: string)          => api.patch(`/api/v1/users/${id}/restore`).then(r => r.data),
+  getMyManager:      ()                      => api.get('/api/v1/users/my-manager').then(r => r.data),
   resetPassword:     (data: any)           => api.post('/api/v1/users/reset-password', data).then(r => r.data),
   changePassword:    (data: { currentPassword: string; newPassword: string }) =>
     api.post('/api/v1/users/change-password', data).then(r => r.data),

@@ -216,14 +216,88 @@ export class TasksService implements OnModuleInit {
   }
 
   // ── Validate task ACTIVE (timesheets) ────────────────────────────────────────
+  // Checks:
+  //   1. Task exists
+  //   2. Task status is not ON_HOLD / COMPLETED / CANCELLED
+  //   3. Task end date has not passed (if set)
   async validateTaskActive(taskId: string) {
-    const task = await this.prisma.task.findUnique({ where: { id: taskId } });
+    const task = await this.prisma.task.findUnique({
+      where:   { id: taskId },
+      include: { project: { select: { code: true, name: true } } },
+    });
     if (!task) throw new NotFoundException(`Task not found: ${taskId}`);
+
     if (BLOCKED_STATUSES.includes(task.status)) {
       throw new BadRequestException(
         `Cannot log hours against task "${task.name}" — it is ${task.status.replace('_', ' ').toLowerCase()}.`
       );
     }
+
+    // Check if the task end date has already passed
+    if ((task as any).endDate) {
+      const endDate = new Date((task as any).endDate);
+      const today   = new Date();
+      today.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      if (endDate < today) {
+        const projectCode = (task as any).project?.code ?? 'Project';
+        const fmtDate     = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        throw new BadRequestException(
+          `${projectCode} — ${task.name} ended on ${fmtDate}. Cannot enter time for this task. Contact your manager to either extend the task end date or assign a new task.`
+        );
+      }
+    }
+
     return task;
+  }
+
+  // ── Find tasks assigned to a specific user (for Enter Timesheet) ─────────────
+  // Only returns tasks where:
+  //   - the user has an ACTIVE assignment
+  //   - the task itself is ACTIVE
+  //   - the task end date has not passed
+  // This ensures Team Members only see tasks their manager assigned them.
+  async findAssignedToUser(userId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get all active task assignments for this user
+    const assignments = await this.prisma.taskAssignment.findMany({
+      where: {
+        employeeId: userId,
+        status:     'ACTIVE',
+        task: {
+          status: 'ACTIVE',
+        },
+      },
+      include: {
+        task: {
+          include: {
+            project: { select: { id: true, code: true, name: true } },
+          },
+        },
+      },
+      orderBy: { assignedAt: 'desc' },
+    });
+
+    // Filter out tasks whose end date has already passed
+    const validAssignments = assignments.filter(a => {
+      const endDate = (a.task as any).endDate;
+      if (!endDate) return true; // no end date — always valid
+      const end = new Date(endDate);
+      end.setHours(0, 0, 0, 0);
+      return end >= today;
+    });
+
+    // Return just the task objects (deduplicated by task id)
+    const seen = new Set<string>();
+    const tasks: any[] = [];
+    for (const a of validAssignments) {
+      if (!seen.has(a.task.id)) {
+        seen.add(a.task.id);
+        tasks.push(a.task);
+      }
+    }
+    return tasks;
   }
 }

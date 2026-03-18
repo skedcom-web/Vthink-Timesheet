@@ -7,6 +7,7 @@ import {
 import * as XLSX from 'xlsx';
 import { projectConfigApi, employeeConfigApi, projectConfigSummaryApi } from '../../services/api';
 import { toast } from './ui/Toast';
+import { useAuthStore } from '../../store/authStore';
 
 type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 
@@ -74,47 +75,65 @@ function downloadProjectTemplate() {
 function downloadEmployeeTemplate() {
   const wb = XLSX.utils.book_new();
 
-  // Headers matching exactly what the backend parser expects
-  const headers = ['Employee Number', 'Employee Name', 'Designation', 'Email'];
+  // 5 columns — Manager Employee No links employee to their direct manager
+  const headers = [
+    'Employee Number',
+    'Employee Name',
+    'Designation',
+    'Email',
+    'Manager Employee No',
+  ];
 
-  // Sample rows to guide the user
+  // Sample data — VT003 and VT005 are managers (blank Manager col)
+  // VT001 & VT002 report to VT003; VT004 & VT006 report to VT005
   const sampleRows = [
-    ['VT001', 'Arun Kumar',       'Senior Developer',       'arun.kumar@vthink.co.in'],
-    ['VT002', 'Priya Ramasamy',   'UI/UX Designer',         'priya.r@vthink.co.in'],
-    ['VT003', 'Mohammed Farhan',  'Project Manager',        'farhan@vthink.co.in'],
-    ['VT004', 'Divya Suresh',     'QA Engineer',            'divya.s@vthink.co.in'],
-    ['VT005', 'Ramesh Natarajan', 'Business Analyst',       'ramesh.n@vthink.co.in'],
+    ['VT001', 'Arun Kumar',       'Senior Developer',  'arun.kumar@vthink.co.in',  'VT003'],
+    ['VT002', 'Priya Ramasamy',   'UI/UX Designer',    'priya.r@vthink.co.in',     'VT003'],
+    ['VT003', 'Mohammed Farhan',  'Project Manager',   'farhan@vthink.co.in',       ''],
+    ['VT004', 'Divya Suresh',     'QA Engineer',       'divya.s@vthink.co.in',     'VT005'],
+    ['VT005', 'Ramesh Natarajan', 'Project Manager',   'ramesh.n@vthink.co.in',     ''],
+    ['VT006', 'Kavitha Anand',    'Business Analyst',  'kavitha.a@vthink.co.in',   'VT005'],
   ];
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
 
-  // Column widths
   ws['!cols'] = [
     { wch: 20 },  // Employee Number
     { wch: 26 },  // Employee Name
     { wch: 26 },  // Designation
-    { wch: 32 },  // Email
+    { wch: 34 },  // Email
+    { wch: 24 },  // Manager Employee No
   ];
 
-  // Instructions sheet
   const instrData = [
     ['vThink Timesheet — Employee Addition Upload Template'],
     [''],
     ['INSTRUCTIONS'],
-    ['1. Fill in the "Employees" sheet starting from row 2 (do not delete the header row).'],
+    ['1. Fill in the "Employees" sheet from row 2. Do NOT delete the header row.'],
     ['2. Employee Number and Employee Name are REQUIRED.'],
-    ['3. If Employee Number is left blank, the system will auto-generate one.'],
-    ['4. Re-uploading the same Employee Number will update the record — no duplicates created.'],
-    ['5. Save the file as .xlsx and upload it using the Upload button.'],
+    ['3. Manager Employee No: enter the Employee Number of this person\'s direct manager.'],
+    ['   Leave blank for managers / top-level employees (SUPER_ADMIN, COMPANY_ADMIN, PROJECT_MANAGER).'],
+    ['4. Re-uploading the same Employee Number will UPDATE the record — including the Manager.'],
+    ['   To reassign an employee to a new manager, just change this column and re-upload.'],
+    ['5. Save as .xlsx and upload using the Upload button.'],
     [''],
     ['COLUMN GUIDE'],
-    ['Employee Number', 'Required. Unique ID e.g. VT001. Auto-generated if blank.'],
-    ['Employee Name',   'Required. Full name of the employee.'],
-    ['Designation',     'Optional. Job title or role e.g. Senior Developer.'],
-    ['Email',           'Optional but recommended. Used for notifications.'],
+    ['Employee Number',     'Required. Unique ID e.g. VT001. Auto-generated if blank.'],
+    ['Employee Name',       'Required. Full name.'],
+    ['Designation',         'Optional. Job title e.g. Senior Developer.'],
+    ['Email',               'Optional but recommended. Used for login & notifications.'],
+    ['Manager Employee No', 'Optional. Employee Number of this person\'s direct manager.'],
+    ['',                    'Example: VT001 reports to VT003 → enter VT003 in this column for VT001.'],
+    ['',                    'Leave blank for top-level managers who have no manager above them.'],
+    [''],
+    ['HOW MANAGER SCOPING WORKS'],
+    ['A Project Manager only sees and approves timesheets of employees mapped to them.'],
+    ['To change a manager, re-upload this file with the updated Manager Employee No.'],
+    ['No need to revoke or recreate accounts when the manager changes.'],
   ];
+
   const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
-  wsInstr['!cols'] = [{ wch: 22 }, { wch: 54 }];
+  wsInstr['!cols'] = [{ wch: 26 }, { wch: 70 }];
 
   XLSX.utils.book_append_sheet(wb, ws,     'Employees');
   XLSX.utils.book_append_sheet(wb, wsInstr,'Instructions');
@@ -123,7 +142,7 @@ function downloadEmployeeTemplate() {
   toast.success('Employee template downloaded!');
 }
 
-// ── Reusable upload card ──────────────────────────────────────────────────────
+
 function UploadCard({
   title, subtitle, hint,
   onUpload, onDownloadTemplate, templateLabel,
@@ -173,12 +192,12 @@ function UploadCard({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6">
 
       {/* Title row with Download Template button */}
       <div className="flex items-start justify-between gap-4 mb-1">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="w-5 h-5 text-primary" />
+          <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
           <h2 className="text-base font-semibold text-slate-800">{title}</h2>
         </div>
         <button
@@ -203,10 +222,10 @@ function UploadCard({
         </button>
       </div>
 
-      <p className="text-sm text-gray-500 mb-4">{subtitle}</p>
+      <p className="text-sm text-slate-500 mb-4">{subtitle}</p>
 
       {/* Format hint */}
-      <div className="mb-4 p-3 rounded-lg bg-primary-tint border border-indigo-100 text-xs text-indigo-700">
+      <div className="mb-4 p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-xs text-indigo-700">
         {hint}
       </div>
 
@@ -218,8 +237,8 @@ function UploadCard({
         onClick={() => fileInputRef.current?.click()}
         className="relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all mb-4"
         style={{
-          borderColor: dragOver ? 'var(--primary)' : selectedFile ? '#A5B4FC' : '#CBD5E1',
-          background:  dragOver ? 'var(--primary-tint)' : selectedFile ? '#F5F3FF' : 'var(--page-bg)',
+          borderColor: dragOver ? '#6366F1' : selectedFile ? '#A5B4FC' : '#CBD5E1',
+          background:  dragOver ? '#EEF2FF' : selectedFile ? '#F5F3FF' : '#F8FAFC',
         }}
       >
         <input
@@ -247,7 +266,7 @@ function UploadCard({
           <div className="flex flex-col items-center gap-2">
             <CloudUpload className="w-8 h-8 text-slate-300" />
             <p className="text-sm font-medium text-slate-600">
-              <span className="text-primary font-semibold">Click to browse</span> or drag & drop
+              <span className="text-indigo-600 font-semibold">Click to browse</span> or drag & drop
             </p>
             <p className="text-xs text-slate-400">.xlsx or .xls · Max 10 MB</p>
           </div>
@@ -259,7 +278,7 @@ function UploadCard({
         onClick={handleUpload}
         disabled={!selectedFile || uploadState === 'uploading'}
         className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ background: selectedFile ? 'var(--primary)' : '#94A3B8' }}
+        style={{ background: selectedFile ? '#4F46E5' : '#94A3B8' }}
       >
         {uploadState === 'uploading'
           ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
@@ -284,11 +303,16 @@ function UploadCard({
 
 // ── Main Admin Upload page ────────────────────────────────────────────────────
 export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => void; onDataChanged?: () => void }) {
+  const { user } = useAuthStore();
+  const isAdmin  = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER'].includes(user?.role || '');
+
   const [projSummary,    setProjSummary]    = useState<ProjectSummary  | null>(null);
   const [empSummary,     setEmpSummary]     = useState<EmployeeSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
 
   const fetchSummaries = useCallback(async () => {
+    // Guard: only admin roles can call these summary endpoints
+    if (!isAdmin) { setLoadingSummary(false); return; }
     setLoadingSummary(true);
     try {
       const [p, e] = await Promise.allSettled([
@@ -300,7 +324,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
     } finally {
       setLoadingSummary(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => { fetchSummaries(); }, [fetchSummaries]);
 
@@ -325,13 +349,13 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
   return (
     <div className="p-6 max-w-5xl space-y-8">
       {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-primary hover:text-indigo-800 font-medium transition-colors">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Overview
       </button>
 
       <div>
-        <h1 className="text-2xl font-semibold font-bold color-text-1 mb-1">Admin — Data Uploads</h1>
-        <p className="text-gray-500 text-sm">
+        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Admin — Data Uploads</h1>
+        <p className="text-slate-500 text-sm">
           Download a template, fill in your data, and upload it to populate projects, tasks and employees.
         </p>
       </div>
@@ -340,11 +364,11 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         {/* Projects summary */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-primary-tint flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-primary" />
+              <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-800">Imported Projects</p>
@@ -355,7 +379,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
               onClick={fetchSummaries}
               disabled={loadingSummary}
               title="Refresh"
-              className="text-slate-400 hover:text-primary transition-colors disabled:opacity-40"
+              className="text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-40"
             >
               <RefreshCw className={`w-4 h-4 ${loadingSummary ? 'animate-spin' : ''}`} />
             </button>
@@ -367,7 +391,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
             </div>
           ) : projSummary && (projSummary.totalProjects > 0 || projSummary.totalTaskNames > 0) ? (
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-primary-tint rounded-lg p-3 text-center">
+              <div className="bg-indigo-50 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-indigo-700">{projSummary.totalProjects}</p>
                 <p className="text-xs text-indigo-500 mt-0.5 flex items-center justify-center gap-1">
                   <Building2 className="w-3 h-3" /> Projects
@@ -390,7 +414,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
         </div>
 
         {/* Employees summary */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
@@ -480,6 +504,9 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
             <span className="font-mono bg-indigo-100 px-1 rounded">Designation</span>
             &nbsp;·&nbsp;
             <span className="font-mono bg-indigo-100 px-1 rounded">Email</span>
+            &nbsp;·&nbsp;
+            <span className="font-mono bg-amber-100 px-1 rounded text-amber-800">Manager Employee No</span>
+            &nbsp;<span className="text-indigo-500 text-xs">(new — enter manager\'s Employee Number; leave blank for top-level managers)</span>
           </>
         }
         onUpload={handleEmployeeUpload}

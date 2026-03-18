@@ -50,8 +50,8 @@ export default function Reports({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     Promise.allSettled([
       timesheetsApi.getAll(),
-      isAdmin ? usersApi.getAll() : Promise.resolve([]),
-      projectsApi.getAll(),
+      isAdmin ? usersApi.getAll()    : Promise.resolve([]),
+      isAdmin ? projectsApi.getAll() : Promise.resolve([]),
     ]).then(([ts, us, pr]) => {
       if (ts.status === 'fulfilled') setTimesheets(ts.value || []);
       if (us.status === 'fulfilled') setEmployees(us.value || []);

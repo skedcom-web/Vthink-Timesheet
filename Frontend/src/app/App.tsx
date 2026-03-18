@@ -43,9 +43,17 @@ const MemoManageUsers        = memo(ManageUsers);
 function getDefaultScreen(): Screen {
   try {
     const raw = localStorage.getItem('vthink-auth');
-    if (raw) { const p = JSON.parse(raw); if (p?.state?.user?.role === 'TEAM_MEMBER') return 'overview'; }
+    if (raw) {
+      const p    = JSON.parse(raw);
+      const role = p?.state?.user?.role;
+      if (role === 'TEAM_MEMBER') return 'overview';
+      if (role) return 'dashboard';
+    }
   } catch { /* ignore */ }
-  return 'dashboard';
+  // No saved session yet (fresh login) — 'overview' is safe for ALL roles.
+  // Dashboard is only visible to admins, so defaulting to it causes blank
+  // screen for Team Members on their first login.
+  return 'overview';
 }
 
 export default function App() {
@@ -210,39 +218,56 @@ export default function App() {
 
         {/* Main scrollable area */}
         <div style={{ flex:1, overflowY:'auto' }}>
-          <div style={{ display: screen === 'dashboard'    ? 'block' : 'none' }}>
-            {!isTeamMember && <MemoDashboard key="dashboard" refreshKey={refreshKey} onNavigate={nav as any} />}
-          </div>
-          <div style={{ display: screen === 'overview'     ? 'block' : 'none' }}>
+          {/* Overview + Timesheet + Reports — all roles */}
+          <div style={{ display: screen === 'overview'  ? 'block' : 'none' }}>
             {isTeamMember
               ? <MemoTeamMemberOverview key="tm-overview" refreshKey={refreshKey} onNavigate={nav as any} />
-              : <MemoOverview key="overview" refreshKey={refreshKey} onNavigate={nav as any} />
+              : <MemoOverview           key="overview"    refreshKey={refreshKey} onNavigate={nav as any} />
             }
           </div>
-          <div style={{ display: screen === 'tasks'        ? 'block' : 'none' }}>
-            <MemoAddTask key="tasks" onBack={goOverview} onDataChanged={notifyDataChanged} />
-          </div>
-          <div style={{ display: screen === 'assign'       ? 'block' : 'none' }}>
-            <MemoAssignTask key="assign" onBack={goOverview} onDataChanged={notifyDataChanged} />
-          </div>
-          <div style={{ display: screen === 'timesheet'    ? 'block' : 'none' }}>
+          <div style={{ display: screen === 'timesheet' ? 'block' : 'none' }}>
             <MemoEnterTS key="timesheet" onBack={goOverview} onDataChanged={notifyDataChanged} />
           </div>
-          <div style={{ display: screen === 'approve'      ? 'block' : 'none' }}>
-            <MemoApproveTS key="approve" onBack={goOverview} onDataChanged={notifyDataChanged} />
-          </div>
-          <div style={{ display: screen === 'reports'      ? 'block' : 'none' }}>
+          <div style={{ display: screen === 'reports'   ? 'block' : 'none' }}>
             {isTeamMember
               ? <MemoTeamMemberReports key="tm-reports" onBack={goOverview} />
-              : <MemoReports key="reports" onBack={goOverview} />
+              : <MemoReports           key="reports"    onBack={goOverview} />
             }
           </div>
-          <div style={{ display: screen === 'admin-upload' ? 'block' : 'none' }}>
-            <MemoAdminUpload key="admin-upload" onBack={goOverview} onDataChanged={notifyDataChanged} />
-          </div>
-          <div style={{ display: screen === 'manage-users' ? 'block' : 'none' }}>
-            <MemoManageUsers key="manage-users" onBack={goOverview} />
-          </div>
+
+          {/* Admin-only screens — NOT mounted for Team Members */}
+          {!isTeamMember && (
+            <>
+              <div style={{ display: screen === 'dashboard' ? 'block' : 'none' }}>
+                <MemoDashboard key="dashboard" refreshKey={refreshKey} onNavigate={nav as any} />
+              </div>
+              {canApprove && (
+                <div style={{ display: screen === 'approve' ? 'block' : 'none' }}>
+                  <MemoApproveTS key="approve" onBack={goOverview} onDataChanged={notifyDataChanged} />
+                </div>
+              )}
+              {canManageTasks && (
+                <>
+                  <div style={{ display: screen === 'tasks'  ? 'block' : 'none' }}>
+                    <MemoAddTask key="tasks" onBack={goOverview} onDataChanged={notifyDataChanged} />
+                  </div>
+                  <div style={{ display: screen === 'assign' ? 'block' : 'none' }}>
+                    <MemoAssignTask key="assign" onBack={goOverview} onDataChanged={notifyDataChanged} />
+                  </div>
+                </>
+              )}
+              {canAdmin && (
+                <>
+                  <div style={{ display: screen === 'admin-upload'  ? 'block' : 'none' }}>
+                    <MemoAdminUpload key="admin-upload" onBack={goOverview} onDataChanged={notifyDataChanged} />
+                  </div>
+                  <div style={{ display: screen === 'manage-users' ? 'block' : 'none' }}>
+                    <MemoManageUsers key="manage-users" onBack={goOverview} />
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </div>
       </div>
 

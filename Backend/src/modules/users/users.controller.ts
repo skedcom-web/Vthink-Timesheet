@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public }       from '../../common/decorators/public.decorator';
 import { UsersService } from './users.service';
 import { MailerService } from './mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -95,6 +96,28 @@ export class UsersController {
     return this.usersService.resetPassword(dto, actor.role);
   }
 
+  // ── Forgot password — public endpoint, no auth required ─────────────────────
+  // Accepts email or employeeId, sends a reset link via email.
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  forgotPassword(@Body('identifier') identifier: string) {
+    return this.usersService.forgotPassword(identifier);
+  }
+
+  // ── Set new password via reset token — public endpoint ────────────────────────
+  // Called after user clicks the link in the forgot-password email.
+  @Public()
+  @Post('set-password-via-token')
+  @HttpCode(HttpStatus.OK)
+  setNewPasswordViaToken(
+    @Body('userId')      userId:      string,
+    @Body('token')       token:       string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.usersService.setNewPasswordViaToken(userId, token, newPassword);
+  }
+
   // ── Change own password ───────────────────────────────────────────────────────
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
@@ -111,5 +134,12 @@ export class UsersController {
       select:  { id: true, name: true, email: true, role: true, employeeId: true, department: true },
       orderBy: { name: 'asc' },
     });
+  }
+
+  // ── Get the manager of the currently logged-in user ───────────────────────────
+  // Used by EnterTimesheet to show "Your timesheet will go to: [Manager Name]"
+  @Get('my-manager')
+  getMyManager(@CurrentUser() user: any) {
+    return this.usersService.getMyManager(user.id);
   }
 }

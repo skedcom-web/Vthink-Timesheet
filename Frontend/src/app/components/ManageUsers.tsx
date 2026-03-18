@@ -42,6 +42,40 @@ interface UserRecord {
 }
 interface EmpOption { employeeNo: string; name: string; email: string; designation: string; }
 
+// ── Default welcome email template — shown in the UI so admin can preview/edit ──
+// This mirrors the server-side default in mailer.service.ts.
+// If the admin clears this field, the server uses its own default template.
+const DEFAULT_WELCOME_TEMPLATE = (name: string, role: string) => {
+  const roleLabel: Record<string,string> = {
+    COMPANY_ADMIN: 'Company Admin',
+    PROJECT_MANAGER: 'Project Manager',
+    TEAM_MEMBER: 'Employee',
+  };
+  const rl = roleLabel[role] || role;
+  return `Dear ${name || '{{Name}}'},
+
+Welcome to the VThink Timesheet!
+
+Your account has been successfully created. Please use the login credentials below to access the system. You will be required to change your password during your first login for security purposes.
+
+Login Details:
+Username / Email: {{Employee ID}}
+Temporary Password: {{Temporary Password}}
+Role: ${rl}
+
+⚠ This is a temporary password. You will be required to set a new password when you log in for the first time. Please do not share this password with anyone.
+
+You can access the system using the following link:
+{{App Login URL}}
+
+If you experience any issues accessing your account, please contact the system administrator.
+
+This is an automated message from the VThink Timesheet. Please do not reply to this email.
+
+Regards,
+vThink Support Team`;
+};
+
 export default function ManageUsers({ onBack }: { onBack: () => void }) {
   const { user: currentUser } = useAuthStore();
   const ROLE_OPTIONS = ALL_ROLE_OPTIONS.filter(r =>
@@ -73,7 +107,12 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
   const fetchUsers = useCallback(async () => {
     setLoadingUsers(true);
     try { setUsers(await usersApi.getAll()); }
-    catch { toast.error('Failed to load users'); }
+    catch (e: any) {
+      // 403 = role not permitted — do NOT show a toast, just stay empty
+      if (e?.response?.status !== 403) {
+        toast.error('Failed to load users');
+      }
+    }
     finally { setLoadingUsers(false); }
   }, []);
 
@@ -246,19 +285,34 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
               </div>
             </div>
 
-            {/* Custom email message toggle */}
+            {/* Email message — shows default template, admin can customise */}
             <div>
-              <button type="button" onClick={() => setShowEmailMsg(v => !v)}
-                className="flex items-center gap-2 text-sm text-primary hover:text-indigo-800 font-medium">
-                <ChevronDown className={`w-4 h-4 transition-transform ${showEmailMsg ? 'rotate-180' : ''}`} />
-                Custom email message (optional)
-              </button>
-              {showEmailMsg && (
-                <textarea value={form.customEmailMessage}
-                  onChange={e => setForm(f => ({...f, customEmailMessage: e.target.value}))}
-                  rows={4} placeholder="Enter custom message to include in the welcome email…"
-                  className={inp + ' mt-2 resize-none'} />
-              )}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                <label className="block text-sm font-medium text-slate-700">
+                  Welcome Email Message
+                </label>
+                <button type="button"
+                  onClick={() => setForm(f => ({
+                    ...f,
+                    customEmailMessage: f.customEmailMessage ? '' : DEFAULT_WELCOME_TEMPLATE(f.name, f.role)
+                  }))}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline">
+                  {form.customEmailMessage ? 'Clear (use server default)' : 'Preview default template'}
+                </button>
+              </div>
+              <textarea
+                value={form.customEmailMessage}
+                onChange={e => setForm(f => ({...f, customEmailMessage: e.target.value}))}
+                rows={10}
+                placeholder={`Default template will be used if left empty.
+
+Click "Preview default template" above to see and edit the default message before sending.`}
+                className={inp + ' resize-y'}
+                style={{ fontFamily:'monospace', fontSize:12 }}
+              />
+              <p className="text-xs text-slate-400 mt-1">
+                💡 Leave empty to use the default template. Or edit the text above — the actual login credentials and login URL are always included automatically.
+              </p>
             </div>
 
             <button onClick={handleCreate} disabled={submitting}

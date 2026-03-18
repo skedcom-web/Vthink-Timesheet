@@ -36,6 +36,15 @@ export class TasksController {
     return this.tasksService.findAll(projectId);
   }
 
+  // ── Tasks assigned to the current user — used by Team Members in Enter Timesheet
+  // Only returns ACTIVE tasks that have an active assignment for this user,
+  // with end date not yet passed. Admins/Managers use findActive instead.
+  @Get('my-assigned')
+  @ApiOperation({ summary: 'Get tasks assigned to the current user (Team Member view)' })
+  getMyAssigned(@CurrentUser() user: any) {
+    return this.tasksService.findAssignedToUser(user.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get single task with assignments' })
   findOne(@Param('id') id: string) {
