@@ -232,15 +232,8 @@ export default function Login() {
             </div>
           </div>
           <div style={{ marginBottom:24 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+            <div style={{ marginBottom:6 }}>
               <label className="label" style={{ margin:0 }}>Password</label>
-              <button type="button"
-                onClick={() => { setError(''); setForgotId(''); setForgotSent(false); setView('forgot'); }}
-                style={{ fontSize:12, color:'#4F38F6', background:'none', border:'none', cursor:'pointer', fontWeight:500, textDecoration:'none' }}
-                onMouseEnter={e => (e.currentTarget.style.textDecoration='underline')}
-                onMouseLeave={e => (e.currentTarget.style.textDecoration='none')}>
-                Forgot password?
-              </button>
             </div>
             <div style={{ position:'relative' }}>
               <Lock style={iconLeft} />
@@ -260,6 +253,17 @@ export default function Login() {
               ? <><Loader2 style={{ width:16, height:16, animation:'spin 1s linear infinite' }} /> Signing in...</>
               : <><span>Sign in</span><ArrowRight style={{ width:16, height:16 }} /></>}
           </button>
+
+          {/* Forgot / Reset Password — below Sign in, standard IT practice */}
+          <div style={{ textAlign:'center', marginTop:16 }}>
+            <button type="button"
+              onClick={() => { setError(''); setForgotId(''); setForgotSent(false); setView('forgot'); }}
+              style={{ fontSize:13, color:'#4F38F6', background:'none', border:'none', cursor:'pointer', fontWeight:500 }}
+              onMouseEnter={e => (e.currentTarget.style.textDecoration='underline')}
+              onMouseLeave={e => (e.currentTarget.style.textDecoration='none')}>
+              Forgot Password / Reset Password
+            </button>
+          </div>
         </div>
       </RightShell>
       <style>{spinStyle}</style>

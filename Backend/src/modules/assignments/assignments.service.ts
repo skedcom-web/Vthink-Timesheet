@@ -119,13 +119,106 @@ export class AssignmentsService {
     });
   }
 
-  findAll() {
-    return this.prisma.taskAssignment.findMany({
+  // ── findAll — hierarchy-aware ───────────────────────────────────────────────
+  // Rules:
+  //   SUPER_ADMIN    → all assignments (company-wide)
+  //   COMPANY_ADMIN  → assignments made by anyone in their subtree
+  //   PROJECT_MANAGER→ only assignments they personally created
+  async findAll(actor: { id: string; role: string; employeeId?: string | null }) {
+    const baseInclude = {
+      task:     { include: { project: { select: { id: true, code: true, name: true } } } },
+      employee: { select: { id: true, name: true, employeeId: true } },
+    };
+
+    if (actor.role === 'SUPER_ADMIN') {
+      return this.prisma.taskAssignment.findMany({
+        include: baseInclude, orderBy: { assignedAt: 'desc' },
+      });
+    }
+
+    if (actor.role === 'PROJECT_MANAGER') {
+      return this.prisma.taskAssignment.findMany({
+        where:   { assignedById: actor.id },
+        include: baseInclude, orderBy: { assignedAt: 'desc' },
+      });
+    }
+
+    if (actor.role === 'COMPANY_ADMIN') {
+      const subtreeUserIds = await this.getSubtreeUserIds(actor);
+      const assignerIds    = [...subtreeUserIds, actor.id];
+      return this.prisma.taskAssignment.findMany({
+        where:   { assignedById: { in: assignerIds } },
+        include: baseInclude, orderBy: { assignedAt: 'desc' },
+      });
+    }
+
+    return [];
+  }
+
+  // ── BFS subtree helper (same pattern as tasks.service) ──────────────────────
+  private async getSubtreeUserIds(
+    actor: { id: string; employeeId?: string | null }
+  ): Promise<string[]> {
+    if (!actor.employeeId) return [];
+    const allEcCodes = new Set<string>();
+    let frontier     = [actor.employeeId.toLowerCase()];
+
+    for (let depth = 0; depth < 10 && frontier.length > 0; depth++) {
+      const placeholders = frontier.map((_, i) => `$${i + 1}`).join(', ');
+      const rows = await this.prisma.$queryRawUnsafe<{ employeeNo: string }[]>(`
+        SELECT "employeeNo" FROM employee_configs
+        WHERE LOWER("managerEmployeeNo") IN (${placeholders}) AND active = true
+      `, ...frontier);
+      const next = rows.map(r => r.employeeNo.toLowerCase()).filter(c => !allEcCodes.has(c));
+      next.forEach(c => allEcCodes.add(c));
+      frontier = next;
+    }
+
+    if (allEcCodes.size === 0) return [];
+    const codes = Array.from(allEcCodes);
+    const placeholders = codes.map((_, i) => `$${i + 1}`).join(', ');
+    const users = await this.prisma.$queryRawUnsafe<{ id: string }[]>(`
+      SELECT id FROM users WHERE LOWER("employeeId") IN (${placeholders}) AND active = true
+    `, ...codes);
+    return users.map(u => u.id);
+  }
+
+  // ── Update assignment (extend end date, change allocation/role) ───────────────
+  async update(id: string, dto: Partial<{
+    assignEndDate:        string;
+    allocationPercentage: number;
+    roleOnTask:           string;
+  }>) {
+    const asgn = await this.prisma.taskAssignment.findUnique({ where: { id } });
+    if (!asgn) throw new NotFoundException('Assignment not found');
+
+    // Validate that new end date does not exceed the task's end date
+    if (dto.assignEndDate) {
+      const task = await this.prisma.task.findUnique({ where: { id: asgn.taskId } });
+      if (task && (task as any).endDate) {
+        const taskEnd  = new Date((task as any).endDate); taskEnd.setHours(0, 0, 0, 0);
+        const asgnEnd  = new Date(dto.assignEndDate);     asgnEnd.setHours(0, 0, 0, 0);
+        if (asgnEnd > taskEnd) {
+          const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+          throw new BadRequestException(
+            `Assignment end date (${fmt(asgnEnd)}) cannot exceed the task end date (${fmt(taskEnd)}). ` +
+            `Either extend the task's end date in Add Task first, or create a new task and re-assign.`
+          );
+        }
+      }
+    }
+
+    return this.prisma.taskAssignment.update({
+      where: { id },
+      data: {
+        ...(dto.assignEndDate        !== undefined && { assignEndDate:        new Date(dto.assignEndDate) }),
+        ...(dto.allocationPercentage !== undefined && { allocationPercentage: dto.allocationPercentage }),
+        ...(dto.roleOnTask           !== undefined && { roleOnTask:           dto.roleOnTask }),
+      },
       include: {
         task:     { include: { project: { select: { id: true, code: true, name: true } } } },
         employee: { select: { id: true, name: true, employeeId: true } },
       },
-      orderBy: { assignedAt: 'desc' },
     });
   }
 }

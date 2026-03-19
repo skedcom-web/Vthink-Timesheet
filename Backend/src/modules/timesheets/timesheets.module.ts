@@ -4,8 +4,9 @@ import { TimesheetsService } from './timesheets.service';
 import { TasksModule } from '../tasks/tasks.module';
 
 @Module({
-  imports: [TasksModule],
+  imports:     [TasksModule],
   controllers: [TimesheetsController],
-  providers: [TimesheetsService],
+  providers:   [TimesheetsService],
+  exports:     [TimesheetsService],   // ← export so DashboardModule can inject it
 })
 export class TimesheetsModule {}

@@ -24,9 +24,16 @@ export class TimesheetsController {
     return this.timesheetsService.findAll(user);
   }
 
+  // Returns ONLY the logged-in user's own timesheets — used by My History tab.
+  // Works identically for all roles: admin, manager, team member.
+  @Get('mine')
+  findMine(@CurrentUser() user: any) {
+    return this.timesheetsService.findMine(user.id);
+  }
+
   @Get('pending')
   @Roles('SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER')
-  getPending() { return this.timesheetsService.getPending(); }
+  getPending(@CurrentUser() user: any) { return this.timesheetsService.getPending(user); }
 
   @Get('week')
   getMyWeek(@CurrentUser() user: any, @Query('weekStartDate') weekStartDate: string) {
@@ -46,14 +53,14 @@ export class TimesheetsController {
   @Put(':id/approve')
   @Roles('SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER')
   approve(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.timesheetsService.approve(id, user.id);
+    return this.timesheetsService.approve(id, user);
   }
 
   @Put(':id/reject')
   @Roles('SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER')
   @ApiBody({ schema: { properties: { reason: { type: 'string' } } } })
   reject(@Param('id') id: string, @CurrentUser() user: any, @Body('reason') reason?: string) {
-    return this.timesheetsService.reject(id, user.id, reason);
+    return this.timesheetsService.reject(id, user, reason);
   }
 
   @Put(':id/recall')

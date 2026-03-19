@@ -25,24 +25,16 @@ export class TasksController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all tasks (all statuses — for management)' })
+  @ApiOperation({ summary: 'Get tasks — hierarchy-filtered by actor role' })
   @ApiQuery({ name: 'projectId', required: false })
   @ApiQuery({ name: 'activeOnly', required: false })
   findAll(
+    @CurrentUser() user: any,
     @Query('projectId') projectId?: string,
     @Query('activeOnly') activeOnly?: string,
   ) {
     if (activeOnly === 'true') return this.tasksService.findActive(projectId);
-    return this.tasksService.findAll(projectId);
-  }
-
-  // ── Tasks assigned to the current user — used by Team Members in Enter Timesheet
-  // Only returns ACTIVE tasks that have an active assignment for this user,
-  // with end date not yet passed. Admins/Managers use findActive instead.
-  @Get('my-assigned')
-  @ApiOperation({ summary: 'Get tasks assigned to the current user (Team Member view)' })
-  getMyAssigned(@CurrentUser() user: any) {
-    return this.tasksService.findAssignedToUser(user.id);
+    return this.tasksService.findAll(user, projectId);
   }
 
   @Get(':id')

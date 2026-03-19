@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -16,5 +16,10 @@ export class AssignmentsController {
     return this.assignmentsService.create(dto, user.id);
   }
 
-  @Get() findAll() { return this.assignmentsService.findAll(); }
+  @Get() findAll(@CurrentUser() user: any) { return this.assignmentsService.findAll(user); }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() dto: any) {
+    return this.assignmentsService.update(id, dto);
+  }
 }

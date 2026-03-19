@@ -175,19 +175,83 @@ export class TasksService implements OnModuleInit {
   }
 
   // ── Find all tasks ────────────────────────────────────────────────────────────
-  findAll(projectId?: string) {
-    return this.prisma.task.findMany({
-      where: projectId ? { projectId } : undefined,
-      include: {
-        project:   { select: { id: true, code: true, name: true } },
-        createdBy: { select: { id: true, name: true } },
-        assignments: {
-          include: { employee: { select: { id: true, name: true, employeeId: true } } },
-          where:   { status: 'ACTIVE' },
-        },
+  // ── findAll — hierarchy-aware ───────────────────────────────────────────────
+  // Rules:
+  //   SUPER_ADMIN    → all tasks (company-wide visibility)
+  //   COMPANY_ADMIN  → tasks created by anyone in their subtree (BFS)
+  //   PROJECT_MANAGER→ only tasks they personally created
+  //   TEAM_MEMBER    → not applicable (no access to this screen)
+  async findAll(
+    actor: { id: string; role: string; employeeId?: string | null },
+    projectId?: string,
+  ) {
+    const baseInclude = {
+      project:   { select: { id: true, code: true, name: true } },
+      createdBy: { select: { id: true, name: true } },
+      assignments: {
+        include: { employee: { select: { id: true, name: true, employeeId: true } } },
+        where:   { status: 'ACTIVE' as any },
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    } as any;
+    const baseOrder = { createdAt: 'desc' as const };
+    const projectFilter = projectId ? { projectId } : {};
+
+    // Super Admin: return everything
+    if (actor.role === 'SUPER_ADMIN') {
+      return this.prisma.task.findMany({
+        where: { ...projectFilter },
+        include: baseInclude, orderBy: baseOrder,
+      });
+    }
+
+    // Project Manager: only tasks they created
+    if (actor.role === 'PROJECT_MANAGER') {
+      return this.prisma.task.findMany({
+        where: { ...projectFilter, createdById: actor.id },
+        include: baseInclude, orderBy: baseOrder,
+      });
+    }
+
+    // Company Admin: tasks created by anyone in their subtree (BFS on EC)
+    if (actor.role === 'COMPANY_ADMIN') {
+      const subtreeUserIds = await this.getSubtreeUserIds(actor);
+      // Include the CA themselves too
+      const creatorIds = [...subtreeUserIds, actor.id];
+      return this.prisma.task.findMany({
+        where: { ...projectFilter, createdById: { in: creatorIds } },
+        include: baseInclude, orderBy: baseOrder,
+      });
+    }
+
+    return [];
+  }
+
+  // ── BFS: get all user IDs in the actor's reporting subtree ──────────────────
+  private async getSubtreeUserIds(
+    actor: { id: string; employeeId?: string | null }
+  ): Promise<string[]> {
+    if (!actor.employeeId) return [];
+    const allEcCodes = new Set<string>();
+    let frontier     = [actor.employeeId.toLowerCase()];
+
+    for (let depth = 0; depth < 10 && frontier.length > 0; depth++) {
+      const placeholders = frontier.map((_, i) => `$${i + 1}`).join(', ');
+      const rows = await this.prisma.$queryRawUnsafe<{ employeeNo: string }[]>(`
+        SELECT "employeeNo" FROM employee_configs
+        WHERE LOWER("managerEmployeeNo") IN (${placeholders}) AND active = true
+      `, ...frontier);
+      const next = rows.map(r => r.employeeNo.toLowerCase()).filter(c => !allEcCodes.has(c));
+      next.forEach(c => allEcCodes.add(c));
+      frontier = next;
+    }
+
+    if (allEcCodes.size === 0) return [];
+    const codes = Array.from(allEcCodes);
+    const placeholders = codes.map((_, i) => `$${i + 1}`).join(', ');
+    const users = await this.prisma.$queryRawUnsafe<{ id: string }[]>(`
+      SELECT id FROM users WHERE LOWER("employeeId") IN (${placeholders}) AND active = true
+    `, ...codes);
+    return users.map(u => u.id);
   }
 
   // ── Find only ACTIVE tasks (Enter Timesheet) ──────────────────────────────────
@@ -216,88 +280,14 @@ export class TasksService implements OnModuleInit {
   }
 
   // ── Validate task ACTIVE (timesheets) ────────────────────────────────────────
-  // Checks:
-  //   1. Task exists
-  //   2. Task status is not ON_HOLD / COMPLETED / CANCELLED
-  //   3. Task end date has not passed (if set)
   async validateTaskActive(taskId: string) {
-    const task = await this.prisma.task.findUnique({
-      where:   { id: taskId },
-      include: { project: { select: { code: true, name: true } } },
-    });
+    const task = await this.prisma.task.findUnique({ where: { id: taskId } });
     if (!task) throw new NotFoundException(`Task not found: ${taskId}`);
-
     if (BLOCKED_STATUSES.includes(task.status)) {
       throw new BadRequestException(
         `Cannot log hours against task "${task.name}" — it is ${task.status.replace('_', ' ').toLowerCase()}.`
       );
     }
-
-    // Check if the task end date has already passed
-    if ((task as any).endDate) {
-      const endDate = new Date((task as any).endDate);
-      const today   = new Date();
-      today.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
-      if (endDate < today) {
-        const projectCode = (task as any).project?.code ?? 'Project';
-        const fmtDate     = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        throw new BadRequestException(
-          `${projectCode} — ${task.name} ended on ${fmtDate}. Cannot enter time for this task. Contact your manager to either extend the task end date or assign a new task.`
-        );
-      }
-    }
-
     return task;
-  }
-
-  // ── Find tasks assigned to a specific user (for Enter Timesheet) ─────────────
-  // Only returns tasks where:
-  //   - the user has an ACTIVE assignment
-  //   - the task itself is ACTIVE
-  //   - the task end date has not passed
-  // This ensures Team Members only see tasks their manager assigned them.
-  async findAssignedToUser(userId: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Get all active task assignments for this user
-    const assignments = await this.prisma.taskAssignment.findMany({
-      where: {
-        employeeId: userId,
-        status:     'ACTIVE',
-        task: {
-          status: 'ACTIVE',
-        },
-      },
-      include: {
-        task: {
-          include: {
-            project: { select: { id: true, code: true, name: true } },
-          },
-        },
-      },
-      orderBy: { assignedAt: 'desc' },
-    });
-
-    // Filter out tasks whose end date has already passed
-    const validAssignments = assignments.filter(a => {
-      const endDate = (a.task as any).endDate;
-      if (!endDate) return true; // no end date — always valid
-      const end = new Date(endDate);
-      end.setHours(0, 0, 0, 0);
-      return end >= today;
-    });
-
-    // Return just the task objects (deduplicated by task id)
-    const seen = new Set<string>();
-    const tasks: any[] = [];
-    for (const a of validAssignments) {
-      if (!seen.has(a.task.id)) {
-        seen.add(a.task.id);
-        tasks.push(a.task);
-      }
-    }
-    return tasks;
   }
 }

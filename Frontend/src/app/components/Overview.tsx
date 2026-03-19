@@ -135,11 +135,14 @@ export default function Overview({ onNavigate, refreshKey = 0 }: { onNavigate: (
   const [stats,       setStats]       = useState<any>(null);
   const [projects,    setProjects]    = useState<any[]>([]);
   const [tasks,       setTasks]       = useState<any[]>([]);
-  const [timesheets,  setTimesheets]  = useState<any[]>([]);
+  const [timesheets,      setTimesheets]      = useState<any[]>([]);
+  const [myTimesheets,    setMyTimesheets]    = useState<any[]>([]); // own timesheets only — for draft count
+  const [pendingForMe,    setPendingForMe]    = useState<any[]>([]); // hierarchy-filtered pending
   const [employees,   setEmployees]   = useState<any[]>([]);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  const isAdmin = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER'].includes(user?.role || '');
+  const isAdmin      = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER'].includes(user?.role || '');
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   useEffect(() => {
     Promise.allSettled([
@@ -148,8 +151,10 @@ export default function Overview({ onNavigate, refreshKey = 0 }: { onNavigate: (
       projectsApi.getAll(),        // legacy projects table
       tasksApi.getAll(),
       timesheetsApi.getAll(),
+      timesheetsApi.getMine(),                                        // own timesheets for draft count
+      isAdmin ? timesheetsApi.getPending() : Promise.resolve([]),
       isAdmin ? usersApi.getAll() : Promise.resolve([]),
-    ]).then(([s, pc, p, t, ts, u]) => {
+    ]).then(([s, pc, p, t, ts, mine, pend, u]) => {
       if (s.status  === 'fulfilled') setStats(s.value);
       // Merge config + legacy projects, deduplicate by id
       const configProjects = pc.status === 'fulfilled' ? (pc.value || []) : [];
@@ -161,14 +166,34 @@ export default function Overview({ onNavigate, refreshKey = 0 }: { onNavigate: (
       });
       setProjects(merged);
       if (t.status  === 'fulfilled') setTasks(t.value     || []);
-      if (ts.status === 'fulfilled') setTimesheets(ts.value || []);
+      if (ts.status   === 'fulfilled') setTimesheets(ts.value     || []);
+      if (mine?.status === 'fulfilled') setMyTimesheets(mine.value  || []);
+      if (pend?.status === 'fulfilled') setPendingForMe(pend.value || []);
       if (u.status  === 'fulfilled') setEmployees(u.value  || []);
     }).finally(() => setInitialLoad(false));
   }, [isAdmin, refreshKey]);  // refreshKey increments on any mutation — forces fresh fetch
 
   // ── Computed values ──────────────────────────────────────────────────────────
-  const pendingTimesheets  = timesheets.filter(t => t.status === 'SUBMITTED');
-  const recentTimesheets   = [...timesheets]
+  // For admins: use hierarchy-filtered pendingForMe (from GET /timesheets/pending)
+  // This ensures the count and callout respect the approver's position in the chain.
+  // For non-admins (Team Members): not used.
+  const pendingTimesheets = isAdmin ? pendingForMe : [];
+
+  // For admins: Recent Timesheets should only show timesheets of employees
+  // that are in their reporting hierarchy (same employee set as pending approvals).
+  // We derive the subordinate user IDs from pendingForMe, but also keep own timesheet out.
+  // For Team Members: show only their own timesheets.
+  // Build subordinate user ID set from the hierarchy-filtered pending list
+  // pendingForMe comes from GET /timesheets/pending — already hierarchy-aware.
+  // We use this same set to filter the "Recent Timesheets" panel so admins only
+  // see timesheets of employees in their reporting chain, not all company timesheets.
+  const subordinateUserIds = new Set(pendingForMe.map((ts: any) => ts.employeeId));
+  const recentTimesheets = [...timesheets]
+    .filter((ts: any) => {
+      if (!isAdmin) return true; // Team Member: show own timesheets
+      // Admin: show timesheets belonging to their subtree subordinates only
+      return subordinateUserIds.has(ts.employeeId);
+    })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
 
@@ -451,13 +476,23 @@ export default function Overview({ onNavigate, refreshKey = 0 }: { onNavigate: (
             </h3>
             <div className="space-y-3">
               {[
-                { label: 'Enter Timesheet',     screen: 'timesheet', icon: Clock,         color: '#6366F1', desc: 'Log weekly hours',       count: timesheets.filter(t => t.status === 'DRAFT').length },
-                { label: 'Submit for Approval', screen: 'timesheet', icon: ArrowRight,    color: '#8B5CF6', desc: 'Submit completed sheets', count: timesheets.filter(t => t.status === 'SUBMITTED').length },
+                // Super Admin: no Enter Timesheet, no Pending Submission — only Approve
+                ...(!isSuperAdmin ? [
+                  { label: 'Enter Timesheet',        screen: 'timesheet#history', icon: Clock,  color: '#6366F1', desc: myTimesheets.filter((t:any) => t.status === 'DRAFT').length > 0 ? `${myTimesheets.filter((t:any) => t.status === 'DRAFT').length} draft${myTimesheets.filter((t:any) => t.status === 'DRAFT').length > 1 ? 's' : ''} — click to review` : 'Log weekly hours', count: myTimesheets.filter((t:any) => t.status === 'DRAFT').length },
+                  { label: 'Submitted for Approval', screen: 'timesheet#history', icon: ArrowRight,   color: '#8B5CF6', desc: 'Awaiting manager approval', count: myTimesheets.filter((t:any) => t.status === 'SUBMITTED').length },
+                ] : []),
                 { label: 'Approve Timesheets',  screen: 'approve',   icon: CheckCircle2,  color: '#10B981', desc: 'Review & approve',        count: pendingTimesheets.length },
               ].map((step, i) => {
                 const Icon = step.icon;
                 return (
-                  <button key={i} onClick={() => onNavigate(step.screen)}
+                  <button key={i} onClick={() => {
+                    const [screen, hash] = step.screen.split('#');
+                    onNavigate(screen as any);
+                    // Signal to EnterTimesheet to open history tab
+                    if (hash === 'history') {
+                      setTimeout(() => { window.dispatchEvent(new CustomEvent('openTimesheetHistory')); }, 100);
+                    }
+                  }}
                     className="w-full flex items-center gap-3 p-3 rounded-xl border hover:shadow-sm transition-all text-left"
                     style={{ borderColor: '#F1F5F9' }}
                     onMouseEnter={e => (e.currentTarget.style.borderColor = step.color + '40')}
@@ -500,26 +535,18 @@ export default function Overview({ onNavigate, refreshKey = 0 }: { onNavigate: (
               ) : recentTimesheets.map(ts => {
                 const sc = STATUS_COLORS[ts.status] || STATUS_COLORS.DRAFT;
                 return (
-                  <div key={ts.id} className="px-5 py-3 hover:bg-slate-50 transition-colors" style={{ display:'flex', alignItems:'center', gap:12 }}>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div className="text-xs font-semibold text-slate-800">{ts.employee?.name || '—'}</div>
-                      {/* Manager context — helps admin know who to contact or act on behalf of */}
-                      {ts.managerName ? (
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          Manager: <span className="font-medium text-slate-500">{ts.managerName}</span>
+                  <div key={ts.id} className="px-5 py-3 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-slate-800">{ts.employee?.name || '—'}</div>
+                        <div className="text-xs text-slate-400">{fmt(ts.weekStartDate)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-bold text-slate-900">{Number(ts.totalHours).toFixed(0)}h</div>
+                        <div className="flex items-center gap-1 justify-end mt-0.5">
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
+                          <span className="text-xs" style={{ color: sc.text }}>{ts.status}</span>
                         </div>
-                      ) : (
-                        <div className="text-xs text-slate-400">{fmt(ts.weekStartDate)}</div>
-                      )}
-                      {ts.managerName && (
-                        <div className="text-xs text-slate-400">{fmt(ts.weekStartDate)}</div>
-                      )}
-                    </div>
-                    <div className="text-right" style={{ flexShrink:0 }}>
-                      <div className="text-xs font-bold text-slate-900">{Number(ts.totalHours).toFixed(0)}h</div>
-                      <div className="flex items-center gap-1 justify-end mt-0.5">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
-                        <span className="text-xs" style={{ color: sc.text }}>{ts.status}</span>
                       </div>
                     </div>
                   </div>

@@ -117,7 +117,6 @@ export default function ApproveTimesheet({ onBack, onDataChanged }: { onBack:()=
                         <div style={{ fontWeight:600, color:'var(--text-1)', fontSize:13 }}>{ts.employee?.name}</div>
                         <div style={{ fontSize:11, color:'var(--text-3)' }}>{ts.employee?.employeeId || ts.employee?.email}</div>
                       </td>
-                      {/* Manager — who the employee reports to */}
                       <td style={{ padding:'12px 16px' }}>
                         {ts.managerName ? (
                           <>

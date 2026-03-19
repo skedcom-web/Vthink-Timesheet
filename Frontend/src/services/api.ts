@@ -50,13 +50,15 @@ export const tasksApi = {
 };
 
 export const assignmentsApi = {
-  create: (data: any) => api.post('/api/v1/assignments', data).then(r => r.data),
-  getAll: ()          => api.get('/api/v1/assignments').then(r => r.data),
+  create: (data: any)             => api.post('/api/v1/assignments', data).then(r => r.data),
+  getAll: ()                      => api.get('/api/v1/assignments').then(r => r.data),
+  update: (id: string, data: any) => api.put(`/api/v1/assignments/${id}`, data).then(r => r.data),
 };
 
 export const timesheetsApi = {
   save:        (data: any)                   => api.post('/api/v1/timesheets', data).then(r => r.data),
   submit:      (id: string)                  => api.put(`/api/v1/timesheets/${id}/submit`).then(r => r.data),
+  getMine:     ()                             => api.get('/api/v1/timesheets/mine').then(r => r.data),
   recall:      (id: string)                  => api.put(`/api/v1/timesheets/${id}/recall`).then(r => r.data),
   deleteDraft: (id: string)                  => api.delete(`/api/v1/timesheets/${id}`).then(r => r.data),
   approve:     (id: string)                  => api.put(`/api/v1/timesheets/${id}/approve`).then(r => r.data),
@@ -72,10 +74,12 @@ export const usersApi = {
   create:            (data: any)           => api.post('/api/v1/users', data).then(r => r.data),
   revoke:            (id: string)          => api.patch(`/api/v1/users/${id}/revoke`).then(r => r.data),
   restore:           (id: string)          => api.patch(`/api/v1/users/${id}/restore`).then(r => r.data),
-  getMyManager:      ()                      => api.get('/api/v1/users/my-manager').then(r => r.data),
   resetPassword:     (data: any)           => api.post('/api/v1/users/reset-password', data).then(r => r.data),
-  changePassword:    (data: { currentPassword: string; newPassword: string }) =>
+  changePassword:       (data: { currentPassword: string; newPassword: string }) =>
     api.post('/api/v1/users/change-password', data).then(r => r.data),
+  getMyManager:         ()                                                    => api.get('/api/v1/users/my-manager').then(r => r.data),
+  forgotPassword:       (identifier: string)                                  => api.post('/api/v1/users/forgot-password', { identifier }).then(r => r.data),
+  setPasswordViaToken:  (userId: string, token: string, newPassword: string)  => api.post('/api/v1/users/set-password-via-token', { userId, token, newPassword }).then(r => r.data),
 };
 
 export const dashboardApi = {
