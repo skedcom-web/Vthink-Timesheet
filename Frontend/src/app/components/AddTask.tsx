@@ -78,7 +78,7 @@ function TaskNameCombo({value,onChange,taskNamePool,onAddName,disabled=false}:{
         <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${open?'rotate-180':''}`} />
       </div>
       {open&&!disabled&&(
-        <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-[var(--card-bg)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100 bg-slate-50">
             <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <input ref={inputRef} value={search} onChange={e=>setSearch(e.target.value)}
@@ -109,7 +109,16 @@ function TaskNameCombo({value,onChange,taskNamePool,onAddName,disabled=false}:{
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────────
-export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataChanged?:()=>void}) {
+export default function AddTask({
+  onBack,
+  onDataChanged,
+  refreshKey = 0,
+}: {
+  onBack: () => void;
+  onDataChanged?: () => void;
+  /** Incremented after admin uploads so project / task-name dropdowns refetch */
+  refreshKey?: number;
+}) {
   // ── View state: 'list' | 'new' | 'edit' ─────────────────────────────────────
   const [view,       setView]       = useState<'list'|'new'|'edit'>('list');
   const [projects,   setProjects]   = useState<any[]>([]);
@@ -128,7 +137,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
     projectConfigApi.getAll()
       .then(configs=>{if(configs&&configs.length>0)setProjects(configs);else projectsApi.getAll().then(setProjects).catch(()=>{});})
       .catch(()=>projectsApi.getAll().then(setProjects).catch(()=>{}));
-  },[]);
+  },[refreshKey]);
 
   const loadTasks = () => {
     setListLoading(true);
@@ -151,7 +160,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
           });
         }
       }).catch(()=>{});
-  },[]);
+  },[refreshKey]);
 
   // ── When project changes in form, also load that project's task names ─────────
   useEffect(()=>{
@@ -340,7 +349,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
           <span className="font-medium">Filter by project:</span>
         </div>
         <select value={filterProject} onChange={e=>setFilterProject(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[160px]">
+          className="border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm bg-[var(--card-bg)] focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[160px]">
           <option value="">All Projects</option>
           {projects.map(p=><option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
         </select>
@@ -353,7 +362,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
           {[1,2,3,4].map(i=><div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse"/>)}
         </div>
       ):displayedTasks.length===0?(
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
+        <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-12 text-center">
           <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
             <Plus className="w-6 h-6 text-slate-400"/>
           </div>
@@ -367,7 +376,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
           </button>
         </div>
       ):(
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
@@ -375,6 +384,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Project</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Type</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Status</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Start</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">End</th>
                 <th className="px-4 py-3 w-10"/>
               </tr>
@@ -403,6 +413,13 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
                         style={{background:sm.bg,color:sm.text,border:`1px solid ${sm.border}`}}>
                         <StatusIcon className="w-3 h-3"/>{sm.label}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {task.startDate ? (
+                        <span className="text-xs font-medium text-slate-500">{fmtDate(task.startDate)}</span>
+                      ) : (
+                        <span className="text-xs text-slate-300">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {task.endDate?(
@@ -443,7 +460,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
           <X className="w-5 h-5"/>
         </button>
       </div>
-      <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
+      <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-6 space-y-5">
         {renderFormFields()}
         <div className="flex gap-3 pt-2 border-t border-slate-100">
           <button onClick={handleCreate} disabled={loading}
@@ -496,7 +513,7 @@ export default function AddTask({onBack,onDataChanged}:{onBack:()=>void;onDataCh
         return null;
       })()}
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5">
+      <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-6 space-y-5">
         {renderFormFields()}
         <div className="flex gap-3 pt-2 border-t border-slate-100">
           <button onClick={handleSaveEdit} disabled={loading}

@@ -23,6 +23,25 @@ interface AuthState {
   hasRole:            (...roles: UserRole[]) => boolean;
 }
 
+const KNOWN_ROLES: UserRole[] = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER'];
+
+function isPersistedSessionValid(s: {
+  isAuthenticated: boolean;
+  user: AuthUser | null;
+  token: string | null;
+}): boolean {
+  if (!s.isAuthenticated) return true;
+  const u = s.user;
+  const userOk =
+    u != null &&
+    typeof u.id === 'string' &&
+    u.id.length > 0 &&
+    typeof u.role === 'string' &&
+    KNOWN_ROLES.includes(u.role as UserRole);
+  const tokenOk = typeof s.token === 'string' && s.token.length > 0;
+  return userOk && tokenOk;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -52,6 +71,25 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated:    s.isAuthenticated,
         mustChangePassword: s.mustChangePassword,
       }),
+      merge: (persistedState, currentState) => {
+        if (!persistedState) return currentState as AuthState;
+        const next = { ...currentState, ...persistedState } as AuthState;
+        if (!isPersistedSessionValid(next)) {
+          try {
+            localStorage.removeItem('access_token');
+          } catch {
+            /* ignore */
+          }
+          return {
+            ...currentState,
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            mustChangePassword: false,
+          } as AuthState;
+        }
+        return next;
+      },
     }
   )
 );

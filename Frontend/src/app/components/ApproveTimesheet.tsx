@@ -137,7 +137,7 @@ export default function ApproveTimesheet({ onBack, onDataChanged }: { onBack:()=
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:6 }}>
                           {/* View details */}
                           <button onClick={() => setViewTs(viewTs?.id===ts.id ? null : ts)}
-                            style={{ padding:'5px 8px', borderRadius:6, border:'1px solid var(--border-mid)', background:'#fff', cursor:'pointer', color:'var(--text-2)', display:'flex' }}
+                            style={{ padding:'5px 8px', borderRadius:6, border:'1px solid var(--border-mid)', background:'var(--card-bg)', cursor:'pointer', color:'var(--text-2)', display:'flex' }}
                             onMouseEnter={e=>e.currentTarget.style.color='var(--primary)'}
                             onMouseLeave={e=>e.currentTarget.style.color='var(--text-2)'}>
                             <Eye style={{ width:14, height:14 }} />

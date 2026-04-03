@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2, ArrowLeft, AlertTriangle, UserCheck, Clock, CheckCircle2, XCircle, RotateCcw, History, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
-import { timesheetsApi, projectsApi, tasksApi, usersApi } from '../../services/api';
+import { timesheetsApi, projectsApi, tasksApi, usersApi, projectConfigApi } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { toast } from './ui/Toast';
 
@@ -31,9 +31,11 @@ interface Entry {
 export default function EnterTimesheet({
   onBack,
   onDataChanged,
+  refreshKey = 0,
 }: {
-  onBack:          () => void;
-  onDataChanged?:  () => void;
+  onBack: () => void;
+  onDataChanged?: () => void;
+  refreshKey?: number;
 }) {
   const { user } = useAuthStore();
   const isAdmin  = ADMIN_ROLES.includes(user?.role ?? '');
@@ -134,7 +136,13 @@ export default function EnterTimesheet({
 
   // ── Load projects + (for Team Members) their assigned tasks ─────────────────
   useEffect(() => {
-    projectsApi.getAll().then(setAllProjects).catch(() => {});
+    projectConfigApi
+      .getAll()
+      .then(configs => {
+        if (configs && configs.length > 0) setAllProjects(configs);
+        else projectsApi.getAll().then(setAllProjects).catch(() => {});
+      })
+      .catch(() => projectsApi.getAll().then(setAllProjects).catch(() => {}));
 
     if (!isAdmin) {
       // Team Member: load only their assigned tasks
@@ -163,7 +171,7 @@ export default function EnterTimesheet({
         })
         .finally(() => setLoadingAssigned(false));
     }
-  }, [isAdmin]);
+  }, [isAdmin, refreshKey]);
 
   // ── Load existing timesheet for the selected week ────────────────────────────
   useEffect(() => {
@@ -422,8 +430,8 @@ export default function EnterTimesheet({
   // Team Members → only projects that have tasks assigned to them
   const projectOptions = isAdmin ? allProjects : assignedProjects;
 
-  const sel  = { width:'100%', border:'1px solid var(--border-mid)', borderRadius:6, padding:'6px 8px', fontSize:13, background:'#fff', outline:'none', fontFamily:"'Inter',system-ui,sans-serif" } as React.CSSProperties;
-  const inp  = { width:52, textAlign:'center' as const, border:'1px solid var(--border-mid)', borderRadius:6, padding:'5px 2px', fontSize:13, background:'#fff', outline:'none', fontFamily:"'Inter',system-ui,sans-serif" } as React.CSSProperties;
+  const sel  = { width:'100%', border:'1px solid var(--border-mid)', borderRadius:6, padding:'6px 8px', fontSize:13, background:'var(--card-bg)', outline:'none', fontFamily:"'Inter',system-ui,sans-serif" } as React.CSSProperties;
+  const inp  = { width:52, textAlign:'center' as const, border:'1px solid var(--border-mid)', borderRadius:6, padding:'5px 2px', fontSize:13, background:'var(--card-bg)', outline:'none', fontFamily:"'Inter',system-ui,sans-serif" } as React.CSSProperties;
   const inpWk = { ...inp, background:'var(--border)' } as React.CSSProperties;
 
   // ── Status config for history tab ────────────────────────────────────────────
@@ -475,7 +483,7 @@ export default function EnterTimesheet({
             style={{
               display:'inline-flex', alignItems:'center', gap:6,
               padding:'7px 16px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:600,
-              background: activeTab === id ? '#fff' : 'transparent',
+              background: activeTab === id ? 'var(--card-bg)' : 'transparent',
               color:      activeTab === id ? 'var(--primary)' : 'var(--text-2)',
               boxShadow:  activeTab === id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
               transition: 'all 0.15s',
@@ -606,7 +614,7 @@ export default function EnterTimesheet({
                           <p style={{ fontSize:12, color:'var(--text-3)', paddingTop:12 }}>No entries recorded.</p>
                         ) : (
                           <div style={{ marginTop:12, borderRadius:10, overflow:'hidden', border:'1px solid var(--border-mid)' }}>
-                            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, background:'#fff' }}>
+                            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, background:'var(--card-bg)' }}>
                               <thead>
                                 <tr style={{ background:'var(--border)' }}>
                                   <th className="th" style={{ textAlign:'left', padding:'8px 12px' }}>Project</th>
@@ -746,7 +754,7 @@ export default function EnterTimesheet({
 
       {/* No tasks assigned message */}
       {!isAdmin && !loadingAssigned && assignedProjects.length === 0 && (
-        <div style={{ padding:32, textAlign:'center', background:'#fff', borderRadius:16, border:'1px solid var(--border)', marginBottom:16 }}>
+        <div style={{ padding:32, textAlign:'center', background:'var(--card-bg)', borderRadius:16, border:'1px solid var(--border)', marginBottom:16 }}>
           <AlertTriangle style={{ width:36, height:36, color:'#F59E0B', margin:'0 auto 12px' }} />
           <p style={{ fontSize:15, fontWeight:600, color:'var(--text-1)', margin:'0 0 6px' }}>No tasks assigned yet</p>
           <p style={{ fontSize:13, color:'var(--text-2)', margin:0 }}>
@@ -758,7 +766,7 @@ export default function EnterTimesheet({
       {/* Week navigator */}
       <div className="card" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 20px', marginBottom:16 }}>
         <button onClick={() => setWeekOffset(w => w - 1)}
-          style={{ padding:'6px 10px', borderRadius:8, border:'1px solid var(--border-mid)', background:'#fff', cursor:'pointer' }}>
+          style={{ padding:'6px 10px', borderRadius:8, border:'1px solid var(--border-mid)', background:'var(--card-bg)', cursor:'pointer' }}>
           <ChevronLeft style={{ width:16, height:16, color:'var(--text-2)' }} />
         </button>
         <div style={{ textAlign:'center' }}>
@@ -772,7 +780,7 @@ export default function EnterTimesheet({
           </div>
         </div>
         <button onClick={() => setWeekOffset(w => w + 1)}
-          style={{ padding:'6px 10px', borderRadius:8, border:'1px solid var(--border-mid)', background:'#fff', cursor:'pointer' }}>
+          style={{ padding:'6px 10px', borderRadius:8, border:'1px solid var(--border-mid)', background:'var(--card-bg)', cursor:'pointer' }}>
           <ChevronRight style={{ width:16, height:16, color:'var(--text-2)' }} />
         </button>
       </div>

@@ -6,6 +6,75 @@ import { CreateAssignmentDto } from './dto/create-assignment.dto';
 export class AssignmentsService {
   constructor(private prisma: PrismaService) {}
 
+  /** Calendar date at local midnight (server TZ) for fair YYYY-MM-DD comparisons */
+  private atLocalMidnight(d: Date): Date {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  private fmtGb(d: Date): string {
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  /** True if the calendar date is strictly before the first day of the current month */
+  private isBeforeFirstDayOfCurrentMonth(d: Date, now: Date): boolean {
+    const a = this.atLocalMidnight(d);
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    return a < first;
+  }
+
+  /** Task is considered ended when it has an end date before today (calendar) */
+  private taskHasEnded(taskEnd: Date | null | undefined, now: Date): boolean {
+    if (!taskEnd) return false;
+    return this.atLocalMidnight(taskEnd) < this.atLocalMidnight(now);
+  }
+
+  /**
+   * Enforces:
+   * - Assignment window inside task start/end when those exist
+   * - For tasks not yet ended: assignment dates must not fall in a month before the current month (timesheet window)
+   * - For ended tasks: skip the month rule; only task bounds apply
+   */
+  private validateAssignmentWindow(
+    task: { startDate: Date | null; endDate: Date | null },
+    assignStart: Date,
+    assignEnd: Date,
+    now: Date,
+  ): void {
+    const s = this.atLocalMidnight(assignStart);
+    const e = this.atLocalMidnight(assignEnd);
+    if (s > e) throw new BadRequestException('Start date must be before end date');
+
+    const taskStart = task.startDate ? this.atLocalMidnight(task.startDate) : null;
+    const taskEnd = task.endDate ? this.atLocalMidnight(task.endDate) : null;
+
+    if (taskStart && s < taskStart) {
+      throw new BadRequestException(
+        'Task cannot be assigned as the start date of task assigning date is lesser than the actual start date of the task',
+      );
+    }
+    if (taskEnd && e > taskEnd) {
+      throw new BadRequestException(
+        `Assignment end date (${this.fmtGb(e)}) cannot exceed the task end date (${this.fmtGb(taskEnd)}). ` +
+          `Either extend the task's end date in Add Task first, or create a new task and re-assign.`,
+      );
+    }
+    if (taskStart && e < taskStart) {
+      throw new BadRequestException('Assignment end date cannot be before the task start date.');
+    }
+    if (taskEnd && s > taskEnd) {
+      throw new BadRequestException('Assignment start date cannot be after the task end date.');
+    }
+
+    const ended = this.taskHasEnded(task.endDate, now);
+    if (!ended) {
+      const msg =
+        'Tasks cannot be assigned for previous month as timesheet window is closed for last month';
+      if (this.isBeforeFirstDayOfCurrentMonth(s, now) || this.isBeforeFirstDayOfCurrentMonth(e, now)) {
+        throw new BadRequestException(msg);
+      }
+    }
+  }
+
   // ── Resolve employee: look up by employeeId (UUID) first, then by employeeNo
   // from employee_configs, then fall back to first user matched by name.
   // If nothing found, create a lightweight TEAM_MEMBER user record on the fly.
@@ -100,7 +169,7 @@ export class AssignmentsService {
 
     const start = new Date(dto.assignStartDate);
     const end   = new Date(dto.assignEndDate);
-    if (start > end) throw new BadRequestException('Start date must be before end date');
+    this.validateAssignmentWindow(task, start, end, new Date());
 
     return this.prisma.taskAssignment.create({
       data: {
@@ -192,20 +261,11 @@ export class AssignmentsService {
     const asgn = await this.prisma.taskAssignment.findUnique({ where: { id } });
     if (!asgn) throw new NotFoundException('Assignment not found');
 
-    // Validate that new end date does not exceed the task's end date
-    if (dto.assignEndDate) {
+    if (dto.assignEndDate !== undefined) {
       const task = await this.prisma.task.findUnique({ where: { id: asgn.taskId } });
-      if (task && (task as any).endDate) {
-        const taskEnd  = new Date((task as any).endDate); taskEnd.setHours(0, 0, 0, 0);
-        const asgnEnd  = new Date(dto.assignEndDate);     asgnEnd.setHours(0, 0, 0, 0);
-        if (asgnEnd > taskEnd) {
-          const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-          throw new BadRequestException(
-            `Assignment end date (${fmt(asgnEnd)}) cannot exceed the task end date (${fmt(taskEnd)}). ` +
-            `Either extend the task's end date in Add Task first, or create a new task and re-assign.`
-          );
-        }
-      }
+      if (!task) throw new NotFoundException('Task not found');
+      const newEnd = new Date(dto.assignEndDate);
+      this.validateAssignmentWindow(task, asgn.assignStartDate, newEnd, new Date());
     }
 
     return this.prisma.taskAssignment.update({

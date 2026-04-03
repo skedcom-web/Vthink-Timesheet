@@ -18,7 +18,7 @@ interface PwFieldProps {
 function PwField({ id, value, onChange, show, onToggleShow, placeholder }: PwFieldProps) {
   return (
     <div style={{ position: 'relative' }}>
-      <Lock style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', width:16, height:16, color:'#9CA3AF', pointerEvents:'none' }} />
+      <Lock style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', width:16, height:16, color:'var(--text-3)', pointerEvents:'none' }} />
       <input
         id={id}
         type={show ? 'text' : 'password'}
@@ -27,19 +27,19 @@ function PwField({ id, value, onChange, show, onToggleShow, placeholder }: PwFie
         placeholder={placeholder}
         autoComplete={id === 'cur-pw' ? 'current-password' : 'new-password'}
         style={{
-          width:'100%', padding:'12px 44px', border:'1.5px solid #D1D5DB', borderRadius:10,
-          fontSize:15, color:'#111928', background:'#fff', outline:'none',
+          width:'100%', padding:'12px 44px', border:'1.5px solid var(--border-mid)', borderRadius:10,
+          fontSize:15, color:'var(--text-1)', background:'var(--card-bg)', outline:'none',
           fontFamily:"'Inter',system-ui,sans-serif", transition:'border-color 0.15s',
           boxSizing:'border-box',
         }}
-        onFocus={e  => (e.currentTarget.style.borderColor = '#1A56DB')}
-        onBlur={e   => (e.currentTarget.style.borderColor = '#D1D5DB')}
+        onFocus={e  => (e.currentTarget.style.borderColor = 'var(--primary)')}
+        onBlur={e   => (e.currentTarget.style.borderColor = 'var(--border-mid)')}
       />
       <button
         type="button"
         onClick={onToggleShow}
         tabIndex={-1}
-        style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#9CA3AF', padding:4, display:'flex' }}
+        style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--text-3)', padding:4, display:'flex' }}
       >
         {show ? <EyeOff style={{ width:16, height:16 }} /> : <Eye style={{ width:16, height:16 }} />}
       </button>
@@ -106,12 +106,11 @@ export default function ForceChangePassword() {
   ];
 
   return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif", background:'var(--page-bg)' }}>
 
       {/* ── Left panel — same branding as Login ── */}
       <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10 relative overflow-hidden"
-        style={{ background:'linear-gradient(135deg, #4F38F6 0%, #432DD7 50%, #5D0EC0 100%)' }}
+        className="login-marketing-panel hidden lg:flex lg:w-1/2 flex-col justify-between p-10 relative overflow-hidden"
       >
         {/* Decorative circles */}
         <div style={{ position:'absolute', top:-80, right:-80, width:300, height:300, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.10)' }} />
@@ -181,46 +180,46 @@ export default function ForceChangePassword() {
       </div>
 
       {/* ── Right panel — password change form ── */}
-      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F9FAFB', padding:24, overflowY:'auto' }}>
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'var(--page-bg)', padding:24, overflowY:'auto' }}>
         <div style={{ width:'100%', maxWidth:420 }}>
 
           {/* Logo (right panel) */}
           <div style={{ textAlign:'center', marginBottom:28 }}>
             <div style={{ display:'inline-flex', alignItems:'baseline' }}>
-              <span style={{ fontSize:28, fontWeight:700, color:'#E02424' }}>v</span>
-              <span style={{ fontSize:28, fontWeight:700, color:'#111928' }}>Think</span>
-              <span style={{ fontSize:16, fontWeight:700, color:'#E02424', marginLeft:2 }}>*</span>
+              <span style={{ fontSize:28, fontWeight:700, color:'var(--danger)' }}>v</span>
+              <span style={{ fontSize:28, fontWeight:700, color:'var(--text-1)' }}>Think</span>
+              <span style={{ fontSize:16, fontWeight:700, color:'var(--danger)', marginLeft:2 }}>*</span>
             </div>
           </div>
 
           {/* Header */}
           <div style={{ textAlign:'center', marginBottom:24 }}>
-            <div style={{ width:48, height:48, borderRadius:'50%', background:'#FFFBEB', border:'2px solid #FDE68A', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
-              <ShieldCheck style={{ width:22, height:22, color:'#C27803' }} />
+            <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--warning-tint)', border:'2px solid var(--border-mid)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+              <ShieldCheck style={{ width:22, height:22, color:'var(--warning)' }} />
             </div>
-            <h2 style={{ fontSize:22, fontWeight:600, color:'#111928', margin:'0 0 4px' }}>Set New Password</h2>
-            <p style={{ fontSize:14, color:'#6B7280', margin:0 }}>Required before you can continue</p>
+            <h2 style={{ fontSize:22, fontWeight:600, color:'var(--text-1)', margin:'0 0 4px' }}>Set New Password</h2>
+            <p style={{ fontSize:14, color:'var(--text-2)', margin:0 }}>Required before you can continue</p>
           </div>
 
           {/* Warning banner */}
-          <div style={{ background:'#FFFBEB', border:'1px solid #FDE68A', borderRadius:10, padding:'10px 14px', marginBottom:20, fontSize:13, color:'#92400E' }}>
+          <div style={{ background:'var(--warning-tint)', border:'1px solid var(--border-mid)', borderRadius:10, padding:'10px 14px', marginBottom:20, fontSize:13, color:'var(--text-1)' }}>
             Your account was created with a temporary password. Please set a new secure password to proceed.
           </div>
 
           {/* Error */}
           {error && (
-            <div style={{ background:'#FDE8E8', border:'1px solid #FECACA', borderRadius:10, padding:'10px 14px', marginBottom:16, fontSize:13, color:'#9B1C1C', display:'flex', gap:8 }}>
+            <div style={{ background:'var(--danger-tint)', border:'1px solid var(--danger)', borderRadius:10, padding:'10px 14px', marginBottom:16, fontSize:13, color:'var(--danger)', display:'flex', gap:8 }}>
               <span style={{ flexShrink:0 }}>⚠</span><span>{error}</span>
             </div>
           )}
 
           {/* Form card */}
-          <div style={{ background:'#fff', borderRadius:16, padding:28, border:'1px solid #E5E7EB', boxShadow:'0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div style={{ background:'var(--card-bg)', borderRadius:16, padding:28, border:'1px solid var(--border)', boxShadow:'var(--shadow-card)' }}>
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
 
               {/* Temporary password */}
               <div>
-                <label htmlFor="cur-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'#111928', marginBottom:6 }}>
+                <label htmlFor="cur-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'var(--text-1)', marginBottom:6 }}>
                   Temporary Password
                 </label>
                 <PwField
@@ -235,7 +234,7 @@ export default function ForceChangePassword() {
 
               {/* New password */}
               <div>
-                <label htmlFor="new-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'#111928', marginBottom:6 }}>
+                <label htmlFor="new-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'var(--text-1)', marginBottom:6 }}>
                   New Password
                 </label>
                 <PwField
@@ -251,7 +250,7 @@ export default function ForceChangePassword() {
                   <div style={{ marginTop:8 }}>
                     <div style={{ display:'flex', gap:4, marginBottom:4 }}>
                       {[1,2,3,4].map(i => (
-                        <div key={i} style={{ flex:1, height:4, borderRadius:99, background: i <= strength.score ? strength.color : '#E5E7EB', transition:'background 0.2s' }} />
+                        <div key={i} style={{ flex:1, height:4, borderRadius:99, background: i <= strength.score ? strength.color : 'var(--border)', transition:'background 0.2s' }} />
                       ))}
                     </div>
                     {strength.label && <p style={{ fontSize:12, color:strength.color, margin:0 }}>{strength.label}</p>}
@@ -261,7 +260,7 @@ export default function ForceChangePassword() {
 
               {/* Confirm password */}
               <div>
-                <label htmlFor="con-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'#111928', marginBottom:6 }}>
+                <label htmlFor="con-pw" style={{ display:'block', fontSize:14, fontWeight:500, color:'var(--text-1)', marginBottom:6 }}>
                   Confirm New Password
                 </label>
                 <PwField
@@ -273,19 +272,19 @@ export default function ForceChangePassword() {
                   placeholder="Re-enter new password"
                 />
                 {confirmPw && confirmPw !== newPw && (
-                  <p style={{ fontSize:12, color:'#E02424', margin:'4px 0 0' }}>Passwords do not match</p>
+                  <p style={{ fontSize:12, color:'var(--danger)', margin:'4px 0 0' }}>Passwords do not match</p>
                 )}
               </div>
 
               {/* Requirements checklist */}
-              <div style={{ background:'#F9FAFB', borderRadius:10, padding:'12px 14px' }}>
-                <p style={{ fontSize:11, fontWeight:600, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Requirements</p>
+              <div style={{ background:'var(--nav-hover-bg)', borderRadius:10, padding:'12px 14px' }}>
+                <p style={{ fontSize:11, fontWeight:600, color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Requirements</p>
                 {requirements.map(r => (
                   <div key={r.label} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-                    <div style={{ width:16, height:16, borderRadius:'50%', background: r.ok ? '#DEF7EC' : '#fff', border: r.ok ? 'none' : '1px solid #E5E7EB', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      {r.ok && <span style={{ color:'#0E9F6E', fontSize:9, fontWeight:700 }}>✓</span>}
+                    <div style={{ width:16, height:16, borderRadius:'50%', background: r.ok ? 'var(--success-tint)' : 'var(--card-bg)', border: r.ok ? 'none' : '1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      {r.ok && <span style={{ color:'var(--success)', fontSize:9, fontWeight:700 }}>✓</span>}
                     </div>
-                    <span style={{ fontSize:12, color: r.ok ? '#0E9F6E' : '#9CA3AF' }}>{r.label}</span>
+                    <span style={{ fontSize:12, color: r.ok ? 'var(--success)' : 'var(--text-3)' }}>{r.label}</span>
                   </div>
                 ))}
               </div>
@@ -297,7 +296,7 @@ export default function ForceChangePassword() {
                 style={{
                   width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
                   padding:'13px 16px', borderRadius:12, border:'none', cursor: loading ? 'not-allowed' : 'pointer',
-                  background: loading ? '#93C5FD' : 'linear-gradient(135deg, #1A56DB 0%, #1447B5 100%)',
+                  background: loading ? 'var(--border-mid)' : 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
                   color:'#fff', fontSize:15, fontWeight:600, transition:'opacity 0.15s',
                   fontFamily:"'Inter',system-ui,sans-serif",
                 }}
@@ -312,7 +311,7 @@ export default function ForceChangePassword() {
 
           <button
             onClick={logout}
-            style={{ display:'block', margin:'16px auto 0', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#9CA3AF', textAlign:'center' }}
+            style={{ display:'block', margin:'16px auto 0', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-3)', textAlign:'center' }}
           >
             Sign out instead
           </button>

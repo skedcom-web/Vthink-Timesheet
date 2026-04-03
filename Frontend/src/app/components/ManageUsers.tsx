@@ -76,7 +76,13 @@ Regards,
 vThink Support Team`;
 };
 
-export default function ManageUsers({ onBack }: { onBack: () => void }) {
+export default function ManageUsers({
+  onBack,
+  refreshKey = 0,
+}: {
+  onBack: () => void;
+  refreshKey?: number;
+}) {
   const { user: currentUser } = useAuthStore();
   const ROLE_OPTIONS = ALL_ROLE_OPTIONS.filter(r =>
     (CREATABLE_ROLES[currentUser?.role || ''] || []).includes(r.value)
@@ -119,7 +125,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     fetchUsers();
     usersApi.getEmployeeOptions().then(setEmpOptions).catch(() => {});
-  }, [fetchUsers]);
+  }, [fetchUsers, refreshKey]);
 
   // Auto-fill from employee_configs when employeeId is selected
   const handleEmpSelect = (empNo: string) => {
@@ -221,7 +227,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
         {(['list','add'] as const).map(t => (
           <button key={t} onClick={() => { setTab(t); setCreatedResult(null); }}
             className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
-            style={{ background: tab === t ? '#fff' : 'transparent', color: tab === t ? 'var(--primary)' : '#64748B',
+            style={{ background: tab === t ? 'var(--card-bg)' : 'transparent', color: tab === t ? 'var(--primary)' : 'var(--text-2)',
               boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
             {t === 'list' ? <><Users className="w-4 h-4 inline mr-1.5" />Manage Users</> : <><UserPlus className="w-4 h-4 inline mr-1.5" />Add New User</>}
           </button>
@@ -231,7 +237,7 @@ export default function ManageUsers({ onBack }: { onBack: () => void }) {
       {/* ── ADD USER TAB ─────────────────────────────────────────────────────── */}
       {tab === 'add' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-6 space-y-4">
             <h2 className="text-base font-semibold text-slate-800 mb-2">Create New User Account</h2>
 
             {/* Employee No — dropdown from employee_configs */}
@@ -334,7 +340,7 @@ Click "Preview default template" above to see and edit the default message befor
                 <p className="text-sm text-emerald-700 mb-4">
                   <strong>{createdResult.name}</strong> has been created. A welcome email with login instructions has been sent.
                 </p>
-                <div className="bg-white border border-emerald-200 rounded-lg p-4">
+                <div className="bg-[var(--card-bg)] border border-emerald-200 rounded-lg p-4">
                   <p className="text-xs text-gray-500 mb-1">Temporary Password (also sent via email)</p>
                   <div className="flex items-center gap-2">
                     <code className="text-base font-bold tracking-widest text-indigo-700 flex-1">
@@ -378,7 +384,7 @@ Click "Preview default template" above to see and edit the default message befor
 
       {/* ── MANAGE USERS TAB ─────────────────────────────────────────────────── */}
       {tab === 'list' && (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl overflow-hidden">
           {/* Toolbar */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-5 py-4 border-b border-gray-100">
             <div className="relative flex-1 w-full">
@@ -486,7 +492,7 @@ Click "Preview default template" above to see and edit the default message befor
       {resetTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+          <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl w-full max-w-md p-6 border border-[var(--border)]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-5 h-5 text-amber-600" />
@@ -528,7 +534,7 @@ Click "Preview default template" above to see and edit the default message befor
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
                   <p className="text-sm text-emerald-700 font-medium mb-2">Password reset successfully!</p>
                   <p className="text-xs text-emerald-600 mb-3">New temporary password (also emailed):</p>
-                  <div className="flex items-center gap-2 bg-white border border-emerald-200 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 bg-[var(--card-bg)] border border-emerald-200 rounded-lg px-3 py-2">
                     <code className="font-bold tracking-widest text-indigo-700 flex-1 text-sm">
                       {showTempPw ? resetResult : '••••••••'}
                     </code>

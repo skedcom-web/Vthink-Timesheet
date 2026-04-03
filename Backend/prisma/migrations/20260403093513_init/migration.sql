@@ -2,13 +2,13 @@
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'COMPANY_ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER');
 
 -- CreateEnum
-CREATE TYPE "TaskType" AS ENUM ('DEVELOPMENT', 'DESIGN', 'TESTING', 'MANAGEMENT');
+CREATE TYPE "TaskType" AS ENUM ('DEVELOPMENT', 'DESIGN', 'TESTING', 'MANAGEMENT', 'SUPPORT', 'DOCUMENTATION', 'MEETING');
 
 -- CreateEnum
 CREATE TYPE "TaskPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
 
 -- CreateEnum
-CREATE TYPE "TaskStatus" AS ENUM ('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD');
+CREATE TYPE "TaskStatus" AS ENUM ('ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED');
 
 -- CreateEnum
 CREATE TYPE "ProjectStatus" AS ENUM ('ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED');
@@ -29,6 +29,9 @@ CREATE TABLE "users" (
     "employeeId" TEXT,
     "department" TEXT,
     "active" BOOLEAN NOT NULL DEFAULT true,
+    "mustChangePassword" BOOLEAN NOT NULL DEFAULT false,
+    "passwordResetToken" TEXT,
+    "passwordResetExpiry" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -73,10 +76,10 @@ CREATE TABLE "tasks" (
     "taskType" "TaskType" NOT NULL DEFAULT 'DEVELOPMENT',
     "priority" "TaskPriority" NOT NULL DEFAULT 'MEDIUM',
     "startDate" TIMESTAMP(3),
-    "dueDate" TIMESTAMP(3),
-    "estimatedHours" DECIMAL(8,2),
-    "actualHours" DECIMAL(8,2),
-    "status" "TaskStatus" NOT NULL DEFAULT 'NOT_STARTED',
+    "endDate" TIMESTAMP(3),
+    "billable" BOOLEAN NOT NULL DEFAULT true,
+    "status" "TaskStatus" NOT NULL DEFAULT 'ACTIVE',
+    "creationStatus" TEXT NOT NULL DEFAULT 'ON_TIME_CREATION',
     "createdById" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -118,6 +121,31 @@ CREATE TABLE "timesheets" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "timesheets_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "project_configs" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "client" TEXT,
+    "description" TEXT,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "project_configs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "task_name_configs" (
+    "id" TEXT NOT NULL,
+    "projectConfigId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "task_name_configs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -193,6 +221,18 @@ CREATE INDEX "timesheets_weekStartDate_idx" ON "timesheets"("weekStartDate");
 CREATE UNIQUE INDEX "timesheets_employeeId_weekStartDate_key" ON "timesheets"("employeeId", "weekStartDate");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "project_configs_code_key" ON "project_configs"("code");
+
+-- CreateIndex
+CREATE INDEX "project_configs_active_idx" ON "project_configs"("active");
+
+-- CreateIndex
+CREATE INDEX "task_name_configs_projectConfigId_idx" ON "task_name_configs"("projectConfigId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "task_name_configs_projectConfigId_name_key" ON "task_name_configs"("projectConfigId", "name");
+
+-- CreateIndex
 CREATE INDEX "timesheet_entries_timesheetId_idx" ON "timesheet_entries"("timesheetId");
 
 -- CreateIndex
@@ -221,6 +261,9 @@ ALTER TABLE "timesheets" ADD CONSTRAINT "timesheets_employeeId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "timesheets" ADD CONSTRAINT "timesheets_approvedById_fkey" FOREIGN KEY ("approvedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "task_name_configs" ADD CONSTRAINT "task_name_configs_projectConfigId_fkey" FOREIGN KEY ("projectConfigId") REFERENCES "project_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "timesheet_entries" ADD CONSTRAINT "timesheet_entries_timesheetId_fkey" FOREIGN KEY ("timesheetId") REFERENCES "timesheets"("id") ON DELETE CASCADE ON UPDATE CASCADE;

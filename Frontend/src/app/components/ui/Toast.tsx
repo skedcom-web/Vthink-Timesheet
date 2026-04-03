@@ -38,7 +38,7 @@ export function ToastContainer() {
   return (
     <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
       {toasts.map(t => (
-        <div key={t.id} className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl shadow-lg px-4 py-3 min-w-[280px] animate-in slide-in-from-right">
+        <div key={t.id} className="flex items-center gap-3 bg-[var(--card-bg)] border border-[var(--border)] rounded-xl shadow-lg px-4 py-3 min-w-[280px] animate-in slide-in-from-right">
           {icons[t.type]}
           <span className="text-sm text-slate-700 flex-1">{t.message}</span>
           <button onClick={() => setToasts(p => p.filter(x => x.id !== t.id))}>

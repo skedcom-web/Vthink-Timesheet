@@ -12,11 +12,16 @@ async function main() {
   console.log('🌱 Seeding database — Super Admin only...\n');
 
   // ── Super Admin ──────────────────────────────────────────────────────────────
-  const passwordHash = await bcrypt.hash('Admin@vThink2026', 12);
+  const passwordHash = await bcrypt.hash('Admin@123', 12);
 
   const superAdmin = await prisma.user.upsert({
     where:  { email: 'admin@vthink.co.in' },
-    update: {},
+    update: {
+      passwordHash,
+      name:   'Super Admin',
+      role:   'SUPER_ADMIN',
+      active: true,
+    },
     create: {
       name:               'Super Admin',
       email:              'admin@vthink.co.in',
@@ -34,7 +39,7 @@ async function main() {
   console.log('  Login credentials:');
   console.log('  Employee ID : SA001');
   console.log('  Email       : admin@vthink.co.in');
-  console.log('  Password    : Admin@vThink2026');
+  console.log('  Password    : Admin@123');
   console.log('─────────────────────────────────────────\n');
   console.log('🎉 Seeding complete! Login and create all other users from the app.');
 }

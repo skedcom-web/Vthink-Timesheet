@@ -33,10 +33,10 @@ interface Timesheet {
 }
 
 const STATUS_CONFIG = {
-  DRAFT:     { label: 'Draft',     color: '#64748B', bg: '#F1F5F9', icon: FileText    },
-  SUBMITTED: { label: 'Submitted', color: '#D97706', bg: '#FEF3C7', icon: AlertCircle },
-  APPROVED:  { label: 'Approved',  color: '#059669', bg: '#D1FAE5', icon: CheckCircle2},
-  REJECTED:  { label: 'Rejected',  color: '#DC2626', bg: '#FEE2E2', icon: XCircle     },
+  DRAFT:     { label: 'Draft',     color: 'var(--text-2)', icon: FileText    },
+  SUBMITTED: { label: 'Submitted', color: 'var(--warning)', icon: AlertCircle },
+  APPROVED:  { label: 'Approved',  color: 'var(--success)', icon: CheckCircle2},
+  REJECTED:  { label: 'Rejected',  color: 'var(--danger)', icon: XCircle     },
 };
 
 const DAY_KEYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
@@ -50,14 +50,13 @@ function weekLabel(start: string) {
   return `${fmt(s)} – ${fmt(e)}, ${s.getFullYear()}`;
 }
 
-function StatCard({ icon: Icon, label, value, color, bg }: {
-  icon: any; label: string; value: string | number; color: string; bg: string;
+function StatCard({ icon: Icon, label, value, color }: {
+  icon: any; label: string; value: string | number; color: string;
 }) {
   return (
-    <div className="rounded-2xl p-5 flex items-center gap-4 bg-white border"
-      style={{ borderColor: color + '22' }}>
+    <div className="rounded-2xl p-5 flex items-center gap-4 bg-[var(--card-bg)] border border-[var(--border)]">
       <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: bg }}>
+        style={{ background: `color-mix(in srgb, ${color} 22%, var(--card-bg))` }}>
         <Icon className="w-5 h-5" style={{ color }} />
       </div>
       <div>
@@ -150,7 +149,7 @@ export default function TeamMemberOverview({
   );
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 max-w-5xl mx-auto space-y-6" style={{ background: 'var(--page-bg)', minHeight: '100%' }}>
 
       {/* Header */}
       <div className="flex items-start justify-between">
@@ -172,10 +171,10 @@ export default function TeamMemberOverview({
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Clock}        label="Total Hours Logged" value={`${totalHours.toFixed(1)}h`} color="#4F46E5" bg="#EDE9FE" />
-        <StatCard icon={CheckCircle2} label="Approved Weeks"     value={approvedCount}               color="#059669" bg="#D1FAE5" />
-        <StatCard icon={AlertCircle}  label="Pending Approval"   value={pendingCount}                color="#D97706" bg="#FEF3C7" />
-        <StatCard icon={FileText}     label="Drafts / Rejected"  value={draftCount + rejectedCount}  color="#64748B" bg="#F1F5F9" />
+        <StatCard icon={Clock}        label="Total Hours Logged" value={`${totalHours.toFixed(1)}h`} color="#4F46E5" />
+        <StatCard icon={CheckCircle2} label="Approved Weeks"     value={approvedCount}               color="#059669" />
+        <StatCard icon={AlertCircle}  label="Pending Approval"   value={pendingCount}                color="#D97706" />
+        <StatCard icon={FileText}     label="Drafts / Rejected"  value={draftCount + rejectedCount}  color="#64748B" />
       </div>
 
       {/* Workflow shortcuts — only if there's something to act on */}
@@ -214,7 +213,7 @@ export default function TeamMemberOverview({
 
       {/* Weekly hours bar chart */}
       {chartData.length > 0 && (
-        <div className="rounded-2xl p-5 bg-white border border-slate-100 shadow-sm">
+        <div className="rounded-2xl p-5 bg-[var(--card-bg)] border border-[var(--border)] shadow-sm">
           <h2 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-indigo-400" />
             Hours Logged — Last {chartData.length} Week{chartData.length !== 1 ? 's' : ''}
@@ -240,7 +239,7 @@ export default function TeamMemberOverview({
             })}
           </div>
           {/* Legend */}
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-50">
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[var(--border)]">
             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
               <span key={key} className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span className="w-2.5 h-2.5 rounded-sm" style={{ background: cfg.color }} />
@@ -252,10 +251,10 @@ export default function TeamMemberOverview({
       )}
 
       {/* Timesheet history */}
-      <div className="rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+      <div className="rounded-2xl bg-[var(--card-bg)] border border-[var(--border)] shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-[var(--border)] flex items-center gap-2">
           <Calendar className="w-4 h-4 text-indigo-400" />
-          <h2 className="text-sm font-semibold text-slate-700">Timesheet History</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-1)]">Timesheet History</h2>
           <span className="ml-auto text-xs text-slate-400">
             {timesheets.length} week{timesheets.length !== 1 ? 's' : ''}
           </span>
@@ -273,7 +272,7 @@ export default function TeamMemberOverview({
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-[var(--border)]">
             {timesheets.map((ts) => {
               const cfg        = STATUS_CONFIG[ts.status];
               const StatusIcon = cfg.icon;
@@ -285,19 +284,19 @@ export default function TeamMemberOverview({
                   <div
                     onClick={() => setExpandedId(isExpanded ? null : ts.id)}
                     style={{ display:'flex', alignItems:'center', gap:16, padding:'16px 20px', cursor:'pointer', transition:'background 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background='#F8FAFC')}
+                    onMouseEnter={e => (e.currentTarget.style.background='var(--nav-hover-bg)')}
                     onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
 
                     {/* Status badge */}
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0"
-                      style={{ background: cfg.bg, color: cfg.color }}>
+                      style={{ background: `color-mix(in srgb, ${cfg.color} 22%, var(--card-bg))`, color: cfg.color }}>
                       <StatusIcon className="w-3 h-3" />
                       {cfg.label}
                     </div>
 
                     {/* Week + subtitle */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800">
+                      <p className="text-sm font-medium text-[var(--text-1)]">
                         {weekLabel(ts.weekStartDate)}
                       </p>
                       {ts.status === 'REJECTED' && ts.rejectionReason && (
@@ -365,14 +364,14 @@ export default function TeamMemberOverview({
 
                   {/* Expanded daily breakdown */}
                   {isExpanded && (
-                    <div className="px-5 pb-5 bg-slate-50 border-t border-slate-100">
+                    <div className="px-5 pb-5 bg-slate-50 border-t border-[var(--border)]">
                       {(!ts.entries || ts.entries.length === 0) ? (
                         <p className="text-xs text-slate-400 pt-4">No entry details available.</p>
                       ) : (
-                        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                        <div className="mt-4 overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--card-bg)]">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="bg-slate-50 border-b border-slate-100">
+                              <tr className="bg-slate-50 border-b border-[var(--border)]">
                                 <th className="text-left px-3 py-2.5 text-slate-500 font-semibold">Project</th>
                                 <th className="text-left px-3 py-2.5 text-slate-500 font-semibold">Task</th>
                                 {DAY_LABELS.map(d => (
@@ -435,7 +434,7 @@ export default function TeamMemberOverview({
       {/* Delete confirmation modal */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-5 h-5 text-red-500" />
             </div>

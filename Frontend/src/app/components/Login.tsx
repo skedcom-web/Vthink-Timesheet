@@ -17,10 +17,7 @@ function getResetParamsFromUrl(): { token: string; userId: string } | null {
 // ── LEFT PANEL — defined OUTSIDE component so it never remounts ───────────────
 function LeftPanel() {
   return (
-    <div
-      className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #4F38F6 0%, #432DD7 50%, #5D0EC0 100%)' }}
-    >
+    <div className="login-marketing-panel hidden lg:flex lg:w-1/2 flex-col justify-between p-10 relative overflow-hidden">
       <div style={{ position:'absolute', top:-80, right:-80, width:300, height:300, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.10)' }} />
       <div style={{ position:'absolute', bottom:-120, left:-60, width:400, height:400, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.10)' }} />
       <div style={{ position:'absolute', top:'40%', left:'60%', width:10, height:10, borderRadius:'50%', background:'rgba(255,255,255,0.20)' }} />
@@ -106,17 +103,17 @@ function LeftPanel() {
 // ── RIGHT PANEL SHELL — defined OUTSIDE component so it never remounts ────────
 function RightShell({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F9FAFB', padding:24 }}>
+    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'var(--page-bg)', padding:24 }}>
       <div style={{ width:'100%', maxWidth:400 }}>
         <div style={{ textAlign:'center', marginBottom:32 }}>
           <div style={{ display:'inline-flex', alignItems:'baseline' }}>
             <span style={{ fontSize:28, fontWeight:700, color:'#EF4444' }}>v</span>
-            <span style={{ fontSize:28, fontWeight:700, color:'#111827' }}>Think</span>
+            <span style={{ fontSize:28, fontWeight:700, color:'var(--text-1)' }}>Think</span>
             <span style={{ fontSize:16, fontWeight:700, color:'#EF4444', marginLeft:2 }}>*</span>
           </div>
         </div>
         {children}
-        <p style={{ textAlign:'center', fontSize:12, color:'#9CA3AF', marginTop:20 }}>
+        <p style={{ textAlign:'center', fontSize:12, color:'var(--text-3)', marginTop:20 }}>
           Contact your administrator if you need access
         </p>
       </div>
@@ -126,8 +123,8 @@ function RightShell({ children }: { children: React.ReactNode }) {
 
 // ── Shared card wrapper ───────────────────────────────────────────────────────
 const cardStyle: React.CSSProperties = {
-  background:'#fff', borderRadius:20, padding:32,
-  border:'1px solid #F3F4F6', boxShadow:'0 1px 3px rgba(0,0,0,0.06)'
+  background:'var(--card-bg)', borderRadius:20, padding:32,
+  border:'1px solid var(--border)', boxShadow:'var(--shadow-card)'
 };
 
 const spinStyle = `@keyframes spin { to { transform: rotate(360deg); } }`;
@@ -204,21 +201,21 @@ export default function Login() {
   })();
 
   const errBox = error ? (
-    <div style={{ marginBottom:16, padding:'10px 14px', background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:10, fontSize:13, color:'#DC2626', fontWeight:500 }}>
+    <div style={{ marginBottom:16, padding:'10px 14px', background:'var(--danger-tint)', border:'1px solid var(--danger)', borderRadius:10, fontSize:13, color:'var(--danger)', fontWeight:500 }}>
       {error}
     </div>
   ) : null;
 
-  const iconBtn: React.CSSProperties = { position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#9CA3AF' };
-  const iconLeft: React.CSSProperties = { position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', width:16, height:16, color:'#9CA3AF' };
+  const iconBtn: React.CSSProperties = { position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--text-3)' };
+  const iconLeft: React.CSSProperties = { position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', width:16, height:16, color:'var(--text-3)' };
 
   // ── VIEW: Login ─────────────────────────────────────────────────────────────
   if (view === 'login') return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif", background:'var(--page-bg)' }}>
       <LeftPanel />
       <RightShell>
-        <h2 style={{ fontSize:22, fontWeight:500, color:'#111827', textAlign:'center', marginBottom:4 }}>Welcome back</h2>
-        <p style={{ fontSize:13, color:'#6B7280', textAlign:'center', marginBottom:28 }}>Sign in to your account to continue</p>
+        <h2 style={{ fontSize:22, fontWeight:500, color:'var(--text-1)', textAlign:'center', marginBottom:4 }}>Welcome back</h2>
+        <p style={{ fontSize:13, color:'var(--text-2)', textAlign:'center', marginBottom:28 }}>Sign in to your account to continue</p>
         <div style={cardStyle}>
           {errBox}
           <div style={{ marginBottom:20 }}>
@@ -258,7 +255,7 @@ export default function Login() {
           <div style={{ textAlign:'center', marginTop:16 }}>
             <button type="button"
               onClick={() => { setError(''); setForgotId(''); setForgotSent(false); setView('forgot'); }}
-              style={{ fontSize:13, color:'#4F38F6', background:'none', border:'none', cursor:'pointer', fontWeight:500 }}
+              style={{ fontSize:13, color:'var(--primary)', background:'none', border:'none', cursor:'pointer', fontWeight:500 }}
               onMouseEnter={e => (e.currentTarget.style.textDecoration='underline')}
               onMouseLeave={e => (e.currentTarget.style.textDecoration='none')}>
               Forgot Password / Reset Password
@@ -272,18 +269,18 @@ export default function Login() {
 
   // ── VIEW: Forgot Password ───────────────────────────────────────────────────
   if (view === 'forgot') return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif", background:'var(--page-bg)' }}>
       <LeftPanel />
       <RightShell>
         <div style={cardStyle}>
           <button onClick={() => { setError(''); setView('login'); }}
-            style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#4F38F6', background:'none', border:'none', cursor:'pointer', fontWeight:500, marginBottom:20, padding:0 }}>
+            style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'var(--primary)', background:'none', border:'none', cursor:'pointer', fontWeight:500, marginBottom:20, padding:0 }}>
             <ArrowLeft style={{ width:15, height:15 }} /> Back to Sign in
           </button>
           {!forgotSent ? (
             <>
-              <h2 style={{ fontSize:20, fontWeight:600, color:'#111827', margin:'0 0 6px' }}>Reset your password</h2>
-              <p style={{ fontSize:13, color:'#6B7280', margin:'0 0 24px', lineHeight:1.6 }}>
+              <h2 style={{ fontSize:20, fontWeight:600, color:'var(--text-1)', margin:'0 0 6px' }}>Reset your password</h2>
+              <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 24px', lineHeight:1.6 }}>
                 Enter your Employee ID or Email and we'll send you a link to reset your password.
               </p>
               {errBox}
@@ -309,13 +306,13 @@ export default function Login() {
               <div style={{ width:56, height:56, borderRadius:'50%', background:'#F0FDF4', border:'2px solid #86EFAC', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
                 <CheckCircle2 style={{ width:28, height:28, color:'#16A34A' }} />
               </div>
-              <h2 style={{ fontSize:20, fontWeight:600, color:'#111827', margin:'0 0 8px' }}>Check your email</h2>
-              <p style={{ fontSize:13, color:'#6B7280', margin:'0 0 6px', lineHeight:1.6 }}>
+              <h2 style={{ fontSize:20, fontWeight:600, color:'var(--text-1)', margin:'0 0 8px' }}>Check your email</h2>
+              <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 6px', lineHeight:1.6 }}>
                 If an account exists for <strong>{forgotId}</strong>, a reset link has been sent.
               </p>
-              <p style={{ fontSize:12, color:'#9CA3AF', margin:'0 0 24px' }}>Link expires in 1 hour. Check spam if you don't see it.</p>
+              <p style={{ fontSize:12, color:'var(--text-3)', margin:'0 0 24px' }}>Link expires in 1 hour. Check spam if you don't see it.</p>
               <button onClick={() => { setError(''); setView('login'); }}
-                style={{ fontSize:13, color:'#4F38F6', background:'none', border:'none', cursor:'pointer', fontWeight:500 }}>
+                style={{ fontSize:13, color:'var(--primary)', background:'none', border:'none', cursor:'pointer', fontWeight:500 }}>
                 Back to Sign in
               </button>
             </div>
@@ -328,12 +325,12 @@ export default function Login() {
 
   // ── VIEW: Set New Password ──────────────────────────────────────────────────
   if (view === 'reset') return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif", background:'var(--page-bg)' }}>
       <LeftPanel />
       <RightShell>
         <div style={cardStyle}>
-          <h2 style={{ fontSize:20, fontWeight:600, color:'#111827', margin:'0 0 6px' }}>Set new password</h2>
-          <p style={{ fontSize:13, color:'#6B7280', margin:'0 0 24px' }}>Enter and confirm your new password below.</p>
+          <h2 style={{ fontSize:20, fontWeight:600, color:'var(--text-1)', margin:'0 0 6px' }}>Set new password</h2>
+          <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 24px' }}>Enter and confirm your new password below.</p>
           {errBox}
           <div style={{ marginBottom:20 }}>
             <label className="label">New Password</label>
@@ -351,7 +348,7 @@ export default function Login() {
               <div style={{ marginTop:8 }}>
                 <div style={{ display:'flex', gap:4, marginBottom:4 }}>
                   {[1,2,3,4].map(i => (
-                    <div key={i} style={{ flex:1, height:3, borderRadius:99, background: i<=pwStrength.score ? pwStrength.color : '#E5E7EB' }} />
+                    <div key={i} style={{ flex:1, height:3, borderRadius:99, background: i<=pwStrength.score ? pwStrength.color : 'var(--border)' }} />
                   ))}
                 </div>
                 <p style={{ fontSize:11, color:pwStrength.color, margin:0 }}>{pwStrength.label}</p>
@@ -386,15 +383,15 @@ export default function Login() {
 
   // ── VIEW: Done ──────────────────────────────────────────────────────────────
   return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif" }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:"'Inter',system-ui,sans-serif", background:'var(--page-bg)' }}>
       <LeftPanel />
       <RightShell>
         <div style={{ ...cardStyle, textAlign:'center' }}>
           <div style={{ width:56, height:56, borderRadius:'50%', background:'#F0FDF4', border:'2px solid #86EFAC', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
             <CheckCircle2 style={{ width:28, height:28, color:'#16A34A' }} />
           </div>
-          <h2 style={{ fontSize:20, fontWeight:600, color:'#111827', margin:'0 0 8px' }}>Password updated!</h2>
-          <p style={{ fontSize:13, color:'#6B7280', margin:'0 0 24px', lineHeight:1.6 }}>
+          <h2 style={{ fontSize:20, fontWeight:600, color:'var(--text-1)', margin:'0 0 8px' }}>Password updated!</h2>
+          <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 24px', lineHeight:1.6 }}>
             Your password has been set. You can now sign in with your new password.
           </p>
           <button onClick={() => { setView('login'); setNewPw(''); setConfirmPw(''); setError(''); }}

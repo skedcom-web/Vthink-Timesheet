@@ -133,14 +133,13 @@ CORS_ORIGINS="http://localhost:5173"
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-## Demo Accounts (all use password: `password123`)
+## Seeded Super Admin (after `npm run seed`)
 
-| Name | Email | Role |
-|------|-------|------|
-| Richard | richard@vthink.com | Super Admin |
-| John | john@vthink.com | Company Admin |
-| Sarah | sarah@vthink.com | Project Manager |
-| James | james@vthink.com | Team Member |
+| Name | Email | Password | Role |
+|------|-------|----------|------|
+| Super Admin | admin@vthink.co.in | `Admin@123` | Super Admin |
+
+Other users are created from the app by the Super Admin.
 
 ## API Endpoints
 

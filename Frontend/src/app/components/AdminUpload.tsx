@@ -4,7 +4,6 @@ import {
   RefreshCw, Loader2, CloudUpload, X, Building2, Users, Briefcase,
   Tag, Download,
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { projectConfigApi, employeeConfigApi, projectConfigSummaryApi } from '../../services/api';
 import { toast } from './ui/Toast';
 import { useAuthStore } from '../../store/authStore';
@@ -16,7 +15,14 @@ interface EmployeeSummary { total: number; byDesignation: { designation: string;
 
 // ── Template download helpers ─────────────────────────────────────────────────
 
-function downloadProjectTemplate() {
+async function downloadProjectTemplate() {
+  let XLSX: typeof import('xlsx');
+  try {
+    XLSX = await import('xlsx');
+  } catch {
+    toast.error('Could not load template builder. Check your connection and try again.');
+    return;
+  }
   const wb = XLSX.utils.book_new();
 
   // Headers matching exactly what the backend parser expects
@@ -72,7 +78,14 @@ function downloadProjectTemplate() {
   toast.success('Project template downloaded!');
 }
 
-function downloadEmployeeTemplate() {
+async function downloadEmployeeTemplate() {
+  let XLSX: typeof import('xlsx');
+  try {
+    XLSX = await import('xlsx');
+  } catch {
+    toast.error('Could not load template builder. Check your connection and try again.');
+    return;
+  }
   const wb = XLSX.utils.book_new();
 
   // 5 columns — Manager Employee No links employee to their direct manager
@@ -151,7 +164,7 @@ function UploadCard({
   subtitle:          string;
   hint:              React.ReactNode;
   onUpload:          (file: File) => Promise<string>;
-  onDownloadTemplate: () => void;
+  onDownloadTemplate: () => void | Promise<void>;
   templateLabel:     string;
 }) {
   const [uploadState,  setUploadState]  = useState<UploadState>('idle');
@@ -192,7 +205,7 @@ function UploadCard({
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6">
+    <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-6">
 
       {/* Title row with Download Template button */}
       <div className="flex items-start justify-between gap-4 mb-1">
@@ -237,8 +250,8 @@ function UploadCard({
         onClick={() => fileInputRef.current?.click()}
         className="relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all mb-4"
         style={{
-          borderColor: dragOver ? '#6366F1' : selectedFile ? '#A5B4FC' : '#CBD5E1',
-          background:  dragOver ? '#EEF2FF' : selectedFile ? '#F5F3FF' : '#F8FAFC',
+          borderColor: dragOver ? 'var(--primary)' : selectedFile ? 'var(--primary)' : 'var(--border-mid)',
+          background:  dragOver ? 'var(--primary-tint)' : selectedFile ? 'var(--vthink-purple-soft)' : 'var(--nav-hover-bg)',
         }}
       >
         <input
@@ -364,7 +377,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         {/* Projects summary */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
@@ -414,7 +427,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
         </div>
 
         {/* Employees summary */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
