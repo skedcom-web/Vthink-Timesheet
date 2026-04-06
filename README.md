@@ -1,185 +1,98 @@
-# vThink Timesheet Management — Full Stack
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
-A production-ready timesheet management system built with the OMS Architecture Blueprint stack.
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-## Tech Stack
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 18 + TypeScript + Vite + Tailwind CSS v4 |
-| **State Management** | Zustand (persisted auth) |
-| **HTTP Client** | Axios with JWT interceptors |
-| **Backend** | NestJS + TypeScript |
-| **ORM** | Prisma (type-safe) |
-| **Database** | PostgreSQL |
-| **Auth** | Passport.js + JWT (24h) + RBAC Guards |
-| **API Docs** | Swagger / OpenAPI (auto-generated) |
-| **Validation** | class-validator + class-transformer |
+## Description
 
-## Project Structure
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-```
-vthink-fullstack/
-├── vthink-api/          # NestJS Backend
-│   ├── prisma/
-│   │   ├── schema.prisma    # Full DB schema with relations
-│   │   └── seed.ts          # Demo data seeder
-│   └── src/
-│       ├── modules/
-│       │   ├── auth/        # JWT + Passport auth
-│       │   ├── projects/    # Project lookup (linkable from ERP)
-│       │   ├── tasks/       # Task management
-│       │   ├── assignments/ # Employee-task assignments
-│       │   ├── timesheets/  # Timesheet CRUD + approval workflow
-│       │   ├── users/       # Employee directory
-│       │   └── dashboard/   # Stats aggregation
-│       └── common/
-│           ├── guards/      # JwtAuthGuard + RolesGuard
-│           ├── filters/     # Global exception filter
-│           └── decorators/  # @CurrentUser, @Roles
-└── vthink-ui/           # React Frontend
-    └── src/
-        ├── services/api.ts  # Typed Axios API layer
-        ├── store/authStore  # Zustand auth state
-        └── app/components/  # All screens
+## Project setup
+
+```bash
+$ npm install
 ```
 
-## Database Schema
+## Compile and run the project
 
-```
-User ─────────────┐
-  │               │
-  ├── Task (created_by)
-  ├── TaskAssignment (employee + assigned_by)
-  └── Timesheet (employee + approved_by)
-       └── TimesheetEntry ── Task ── Project
-```
+```bash
+# development
+$ npm run start
 
-**Future integrations**: The `Project` table's `code` field (e.g. `GT01-PRJ-001`) and `User` table's `employeeId` field are designed to link with external ERP/HR systems. Add foreign-key references or API sync jobs to pull live data from those systems.
+# watch mode
+$ npm run start:dev
 
-## Prerequisites
-
-- **Node.js** 20+ LTS
-- **PostgreSQL** 14+ running locally
-- **npm** 9+
-
-## Setup Instructions
-
-### 1. Database Setup
-
-```sql
--- In psql or pgAdmin:
-CREATE DATABASE vthink_timesheet;
+# production mode
+$ npm run start:prod
 ```
 
-### 2. Backend (vthink-api)
+## Run tests
 
-```cmd
-cd vthink-api
+```bash
+# unit tests
+$ npm run test
 
-# Copy env and update DATABASE_URL
-copy .env.example .env
+# e2e tests
+$ npm run test:e2e
 
-# Install dependencies
-npm install
-
-# Generate Prisma client
-npx prisma generate
-
-# Run migrations (creates all tables)
-npx prisma migrate dev --name init
-
-# Seed demo data
-npx prisma db seed
-
-# Start backend
-npm run start:dev
+# test coverage
+$ npm run test:cov
 ```
 
-Backend runs on: **http://localhost:3000**
-Swagger docs at: **http://localhost:3000/api/docs**
+## Deployment
 
-### 3. Frontend (vthink-ui)
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
-```cmd
-cd vthink-ui
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
 
-# Install dependencies
-npm install
-
-# Start frontend
-npm run dev
+```bash
+$ npm install -g @nestjs/mau
+$ mau deploy
 ```
 
-Frontend runs on: **http://localhost:5173**
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
-## Environment Variables
+## Resources
 
-### vthink-api/.env
+Check out a few resources that may come in handy when working with NestJS:
 
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/vthink_timesheet?schema=public"
-JWT_SECRET="your-super-secret-key"
-JWT_EXPIRES_IN="24h"
-JWT_REFRESH_SECRET="your-refresh-secret-key"
-JWT_REFRESH_EXPIRES_IN="7d"
-PORT=3000
-CORS_ORIGINS="http://localhost:5173"
-```
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-### vthink-ui/.env
+## Support
 
-```env
-VITE_API_BASE_URL=http://localhost:3000
-```
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
 
-## Seeded Super Admin (after `npm run seed`)
+## Stay in touch
 
-| Name | Email | Password | Role |
-|------|-------|----------|------|
-| Super Admin | admin@vthink.co.in | `Admin@123` | Super Admin |
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-Other users are created from the app by the Super Admin.
+## License
 
-## API Endpoints
-
-```
-POST   /api/v1/auth/login              Login
-GET    /api/v1/auth/me                 Current user
-
-GET    /api/v1/projects                All active projects
-GET    /api/v1/users                   All employees
-
-POST   /api/v1/tasks                   Create task
-GET    /api/v1/tasks?projectId=...     List tasks
-
-POST   /api/v1/assignments             Assign task to employee
-GET    /api/v1/assignments             List assignments
-
-POST   /api/v1/timesheets              Save timesheet (draft)
-GET    /api/v1/timesheets              List timesheets
-GET    /api/v1/timesheets/pending      Pending approvals
-GET    /api/v1/timesheets/week?...     My week timesheet
-PUT    /api/v1/timesheets/:id/submit   Submit for approval
-PUT    /api/v1/timesheets/:id/approve  Approve
-PUT    /api/v1/timesheets/:id/reject   Reject
-
-GET    /api/v1/dashboard/stats         Dashboard stats
-```
-
-## Security
-
-- JWT Bearer tokens (24h expiry)
-- RBAC guards on every protected route
-- Input validation via class-validator
-- CORS restricted to configured origins
-- Passwords hashed with bcrypt (12 rounds)
-
-## Linking External Systems
-
-To pull **project codes** from an external ERP:
-1. Add an `externalId` column to the `projects` table
-2. Create a sync service (BullMQ job) to fetch and upsert projects from ERP API
-3. Frontend auto-picks up the projects via `GET /api/v1/projects`
-
-Same pattern applies for **employee IDs** from HR systems.
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
