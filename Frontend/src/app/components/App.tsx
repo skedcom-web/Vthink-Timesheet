@@ -19,6 +19,7 @@ import TeamMemberReports from './components/TeamMemberReports';
 import AdminUpload from './components/AdminUpload';
 import ManageUsers from './components/ManageUsers';
 import { ToastContainer } from './components/ui/Toast';
+import { VthinkWordmark } from './VthinkWordmark';
 
 type Screen = 'dashboard' | 'overview' | 'tasks' | 'assign' | 'timesheet'
             | 'approve' | 'reports' | 'admin-upload' | 'manage-users';
@@ -103,8 +104,8 @@ export default function App() {
     <div className="flex flex-col h-full" style={{ background: '#F5F3FF', borderRight: '1px solid #E4E1FC' }}>
       {/* Logo */}
       <div className="px-5 py-5 border-b border-indigo-100">
-        <h1 className="text-2xl font-bold" style={{ letterSpacing: '-0.02em' }}>
-          <span style={{ color: '#EF4444' }}>v</span><span style={{ color: '#1E293B' }}>Think</span>
+        <h1 className="text-2xl font-bold m-0" style={{ letterSpacing: '-0.02em' }}>
+          <VthinkWordmark fontSize={24} thinkColor="#1E293B" />
         </h1>
         <p className="text-xs text-slate-400 mt-0.5">Timesheet Management</p>
       </div>
@@ -195,8 +196,9 @@ export default function App() {
           {/* Mobile top bar */}
           <div className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-slate-200 bg-white">
             <button onClick={() => setSidebarOpen(true)}><Menu className="w-5 h-5 text-slate-600" /></button>
-            <span className="font-bold text-slate-900">
-              <span style={{ color: '#EF4444' }}>v</span>Think Timesheet
+            <span className="font-bold text-slate-900 inline-flex items-baseline gap-1.5 flex-wrap">
+              <VthinkWordmark fontSize={18} thinkColor="#0F172A" />
+              <span>Timesheet</span>
             </span>
           </div>
 

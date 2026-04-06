@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ProjectConfigModule } from './modules/project-config/project-config.module';
 import { EmployeeConfigModule } from './modules/employee-config/employee-config.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { EmployeeConfigModule } from './modules/employee-config/employee-config.
     DashboardModule,
     ProjectConfigModule,
     EmployeeConfigModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

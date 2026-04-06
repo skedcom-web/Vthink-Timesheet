@@ -249,3 +249,39 @@ model TimesheetEntry {
   @@index([taskId])
   @@map("timesheet_entries")
 }
+
+// ── Email notification settings: editable by SUPER_ADMIN only (IST schedules).
+//    Recipients are all active users except SUPER_ADMIN (includes COMPANY_ADMIN as employees).
+model AppNotificationSettings {
+  id String @id @default("global")
+
+  timezone            String @default("Asia/Kolkata")
+  weeklyReminderEnabled Boolean @default(true)
+
+  /// JSON array: { id, statusKey, enabled, weekdaysMonFirst: number[], hour: 0-23, minute: 0-59 }[]
+  /// statusKey: NOT_INITIATED | DRAFT | SUBMITTED | REJECTED
+  /// weekdaysMonFirst: 1=Mon .. 7=Sun
+  statusReminderRules Json @default("[]")
+
+  updatedAt DateTime @updatedAt
+  updatedById String?
+
+  @@map("app_notification_settings")
+}
+
+/// One row per actual send — prevents duplicate emails same calendar day (IST) per rule/week.
+model NotificationDeliveryLog {
+  id     String @id @default(uuid())
+  userId String
+  channel String @default("email")
+  kind    String
+  weekKey String
+  ruleId  String
+  dayYmd  String
+  sentAt  DateTime @default(now())
+
+  @@unique([userId, kind, weekKey, ruleId, dayYmd])
+  @@index([sentAt])
+  @@index([userId])
+  @@map("notification_delivery_logs")
+}

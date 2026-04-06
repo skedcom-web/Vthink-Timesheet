@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Clock, Users, BarChart3, CheckCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { authApi, usersApi } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { VthinkWordmark, VthinkWordmarkPill } from './VthinkWordmark';
 
 type View = 'login' | 'forgot' | 'reset' | 'done';
 
@@ -25,13 +26,8 @@ function LeftPanel() {
       <div style={{ position:'absolute', top:'65%', left:'85%', width:8, height:8, borderRadius:'50%', background:'rgba(255,255,255,0.15)' }} />
 
       <div>
-        <div style={{ display:'flex', alignItems:'baseline' }}>
-          <span style={{ fontSize:24, fontWeight:700, color:'#F87171' }}>v</span>
-          <span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>Think</span>
-          <span style={{ fontSize:14, fontWeight:700, color:'#F87171', marginLeft:2 }}>*</span>
-          <span style={{ fontSize:10, color:'rgba(255,255,255,0.5)', marginLeft:2 }}>®</span>
-        </div>
-        <p style={{ color:'rgba(255,255,255,0.6)', fontSize:12, marginTop:4 }}>Timesheet Management System</p>
+        <VthinkWordmarkPill fontSize={24} />
+        <p style={{ color:'rgba(255,255,255,0.6)', fontSize:12, marginTop:10 }}>Timesheet Management System</p>
       </div>
 
       <div style={{ position:'relative', zIndex:10, marginTop:-32 }}>
@@ -106,11 +102,7 @@ function RightShell({ children }: { children: React.ReactNode }) {
     <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'var(--page-bg)', padding:24 }}>
       <div style={{ width:'100%', maxWidth:400 }}>
         <div style={{ textAlign:'center', marginBottom:32 }}>
-          <div style={{ display:'inline-flex', alignItems:'baseline' }}>
-            <span style={{ fontSize:28, fontWeight:700, color:'#EF4444' }}>v</span>
-            <span style={{ fontSize:28, fontWeight:700, color:'var(--text-1)' }}>Think</span>
-            <span style={{ fontSize:16, fontWeight:700, color:'#EF4444', marginLeft:2 }}>*</span>
-          </div>
+          <VthinkWordmark fontSize={28} thinkColor="var(--text-1)" />
         </div>
         {children}
         <p style={{ textAlign:'center', fontSize:12, color:'var(--text-3)', marginTop:20 }}>

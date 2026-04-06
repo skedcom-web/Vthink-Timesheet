@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { dashboardApi } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { VthinkAppHeaderBrand } from './VthinkWordmark';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 function fmtDate(iso: string) {
@@ -404,6 +405,9 @@ export default function Dashboard({ onNavigate, refreshKey = 0 }: { onNavigate: 
 
       {/* Header — same copy & logic; template-style breadcrumbs & type scale */}
       <div>
+        <div style={{ marginBottom: 14 }}>
+          <VthinkAppHeaderBrand wordmarkSize={22} timesheetSize={19} />
+        </div>
         <div style={{ fontSize:12, color:'var(--text-3)', marginBottom:10, display:'flex', alignItems:'center', gap:8 }}>
           <Home style={{ width:14, height:14, flexShrink:0 }} />
           <span>›</span>

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Lock, Eye, EyeOff, ShieldCheck, ArrowRight, BarChart3, Users, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, ShieldCheck, ArrowRight, Clock, Loader2 } from 'lucide-react';
 import { usersApi } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { toast } from './ui/Toast';
+import { VthinkWordmark, VthinkWordmarkPill } from './VthinkWordmark';
 
 // ── CRITICAL: PwField MUST be defined OUTSIDE the parent component.
 // If defined inside, React recreates the component on every state change,
@@ -121,13 +122,8 @@ export default function ForceChangePassword() {
 
         {/* Logo */}
         <div>
-          <div style={{ display:'flex', alignItems:'baseline' }}>
-            <span style={{ fontSize:24, fontWeight:700, color:'#F87171' }}>v</span>
-            <span style={{ fontSize:24, fontWeight:700, color:'#fff' }}>Think</span>
-            <span style={{ fontSize:14, fontWeight:700, color:'#F87171', marginLeft:2 }}>*</span>
-            <span style={{ fontSize:10, color:'rgba(255,255,255,0.5)', marginLeft:2 }}>®</span>
-          </div>
-          <p style={{ color:'rgba(255,255,255,0.6)', fontSize:12, marginTop:4 }}>Timesheet Management System</p>
+          <VthinkWordmarkPill fontSize={24} />
+          <p style={{ color:'rgba(255,255,255,0.6)', fontSize:12, marginTop:10 }}>Timesheet Management System</p>
         </div>
 
         {/* Hero content */}
@@ -185,11 +181,7 @@ export default function ForceChangePassword() {
 
           {/* Logo (right panel) */}
           <div style={{ textAlign:'center', marginBottom:28 }}>
-            <div style={{ display:'inline-flex', alignItems:'baseline' }}>
-              <span style={{ fontSize:28, fontWeight:700, color:'var(--danger)' }}>v</span>
-              <span style={{ fontSize:28, fontWeight:700, color:'var(--text-1)' }}>Think</span>
-              <span style={{ fontSize:16, fontWeight:700, color:'var(--danger)', marginLeft:2 }}>*</span>
-            </div>
+            <VthinkWordmark fontSize={28} thinkColor="var(--text-1)" />
           </div>
 
           {/* Header */}

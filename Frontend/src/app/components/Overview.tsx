@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { projectsApi, tasksApi, timesheetsApi, usersApi, dashboardApi, projectConfigApi } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { VthinkAppHeaderBrand } from './VthinkWordmark';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmt = (iso: string) =>
@@ -260,6 +261,9 @@ export default function Overview({ onNavigate, refreshKey = 0 }: { onNavigate: (
       {/* ── Header ────────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between">
         <div>
+          <div className="mb-3">
+            <VthinkAppHeaderBrand />
+          </div>
           <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
             <LayoutDashboard className="w-3.5 h-3.5" />
             <span>Timesheets</span><span>›</span>

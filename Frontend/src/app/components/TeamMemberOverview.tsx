@@ -7,6 +7,7 @@ import {
 import { timesheetsApi } from '../../services/api';
 import { toast } from './ui/Toast';
 import { useAuthStore } from '../../store/authStore';
+import { VthinkAppHeaderBrand } from './VthinkWordmark';
 
 interface TimesheetEntry {
   id: string;
@@ -154,6 +155,9 @@ export default function TeamMemberOverview({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
+          <div className="mb-3">
+            <VthinkAppHeaderBrand />
+          </div>
           <h1 className="text-2xl font-bold text-slate-900">
             Welcome back, <span style={{ color: '#059669' }}>{user?.name?.split(' ')[0]}</span>
           </h1>

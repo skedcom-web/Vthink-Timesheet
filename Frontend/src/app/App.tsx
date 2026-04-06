@@ -2,7 +2,7 @@ import { useState, useCallback, memo, useEffect } from 'react';
 import {
   LayoutDashboard, Clock, Plus, Users, CheckCircle2,
   BarChart3, LogOut, ChevronDown, ChevronRight,
-  Settings, UserCog, Upload, FileText,
+  Settings, UserCog, Upload, FileText, Bell,
   PanelLeft, PanelLeftClose, Sun, Moon,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -19,10 +19,12 @@ import Reports from './components/Reports';
 import TeamMemberReports from './components/TeamMemberReports';
 import AdminUpload from './components/AdminUpload';
 import ManageUsers from './components/ManageUsers';
+import AdminNotifications from './components/AdminNotifications';
 import { ToastContainer } from './components/ui/Toast';
+import { VthinkRedV, VthinkThinkReg } from './components/VthinkWordmark';
 
 type Screen = 'dashboard' | 'overview' | 'tasks' | 'assign' | 'timesheet'
-            | 'approve' | 'reports' | 'admin-upload' | 'manage-users';
+            | 'approve' | 'reports' | 'admin-upload' | 'manage-users' | 'admin-notifications';
 
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN:'Super Admin', COMPANY_ADMIN:'Company Admin',
@@ -45,6 +47,7 @@ const MemoReports            = memo(Reports);
 const MemoTeamMemberReports  = memo(TeamMemberReports);
 const MemoAdminUpload        = memo(AdminUpload);
 const MemoManageUsers        = memo(ManageUsers);
+const MemoAdminNotifications = memo(AdminNotifications);
 
 /** First screen to show for a role (also used after login so a stale `screen` cannot hide all panels). */
 function getDefaultScreenForRole(role: string | undefined): Screen {
@@ -154,7 +157,11 @@ export default function App() {
   const canAdmin       = ['SUPER_ADMIN','COMPANY_ADMIN','PROJECT_MANAGER'].includes(user.role);
 
   const viewScreen: Screen =
-    isSuperAdmin && screen === 'timesheet' ? 'dashboard' : screen;
+    isSuperAdmin && screen === 'timesheet'
+      ? 'dashboard'
+      : !isSuperAdmin && screen === 'admin-notifications'
+        ? 'overview'
+        : screen;
 
   const initials = user.name?.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0,2) ?? '?';
 
@@ -189,13 +196,15 @@ export default function App() {
               justifyContent: collapsed ? 'center' : 'flex-start',
             }}
           >
-            <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-              <span style={{ fontSize:22, fontWeight:800, color:'var(--vthink-purple)' }}>v</span>
-              <span className="vthink-brand-rest" style={{ display:'flex', alignItems:'baseline', gap:2 }}>
-                <span style={{ fontSize:22, fontWeight:800, color:'var(--text-1)' }}>Think</span>
-                <span style={{ fontSize:11, color:'var(--text-3)', marginLeft:1, marginTop:-4, alignSelf:'flex-start' }}>®</span>
+            <div style={{ display:'flex', alignItems:'baseline', gap: 0, flexWrap:'wrap', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+              <VthinkRedV fontSize={22} style={{ flexShrink: 0 }} />
+              <span
+                className="vthink-brand-rest"
+                style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 0, fontFamily: "'Inter', system-ui, sans-serif" }}
+              >
+                <VthinkThinkReg fontSize={22} thinkColor="var(--text-1)" />
+                <span style={{ fontSize:20, fontWeight:700, color:'var(--text-1)', letterSpacing: '-0.02em' }}>Timesheet</span>
               </span>
-              <span className="vthink-brand-rest" style={{ fontSize:20, fontWeight:700, color:'var(--text-1)' }}>Timesheet</span>
             </div>
           </div>
 
@@ -248,6 +257,7 @@ export default function App() {
                   <>
                     {navItem('manage-users', UserCog, 'Manage Users', true)}
                     {navItem('admin-upload', Upload,  'Upload / Import', true)}
+                    {isSuperAdmin && navItem('admin-notifications', Bell, 'Notifications', true)}
                   </>
                 )}
               </>
@@ -390,6 +400,11 @@ export default function App() {
           <div style={{ display: viewScreen === 'manage-users' ? 'block' : 'none' }}>
             <MemoManageUsers key="manage-users" refreshKey={refreshKey} onBack={goOverview} />
           </div>
+          {isSuperAdmin && viewScreen === 'admin-notifications' && (
+            <div>
+              <MemoAdminNotifications key="admin-notifications" onBack={goOverview} />
+            </div>
+          )}
         </div>
       </div>
 

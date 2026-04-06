@@ -119,3 +119,10 @@ export const employeeConfigApi = {
 export const projectConfigSummaryApi = {
   getSummary: () => api.get('/api/v1/project-config/summary').then(r => r.data),
 };
+
+/** Super Admin only — 403 for other roles */
+export const notificationsApi = {
+  getSettings: () => api.get('/api/v1/admin/notifications').then(r => r.data),
+  updateSettings: (data: { weeklyReminderEnabled?: boolean; statusReminderRules?: unknown[] }) =>
+    api.put('/api/v1/admin/notifications', data).then(r => r.data),
+};
