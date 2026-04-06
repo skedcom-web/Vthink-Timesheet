@@ -197,12 +197,13 @@ export class UsersService implements OnModuleInit {
   // Called from the public login screen. Does NOT require authentication.
   // Generates a secure token, stores it hashed, emails a direct reset link.
   async forgotPassword(identifier: string) {
+    const id = (identifier ?? '').trim();
     // Find user by email OR employeeId (case-insensitive)
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [
-          { email:      { equals: identifier, mode: 'insensitive' } },
-          { employeeId: { equals: identifier, mode: 'insensitive' } },
+          { email:      { equals: id, mode: 'insensitive' } },
+          { employeeId: { equals: id, mode: 'insensitive' } },
         ],
         active: true,
       },
@@ -210,7 +211,7 @@ export class UsersService implements OnModuleInit {
 
     // Always return success message to prevent user enumeration
     if (!user) {
-      this.logger.warn(`Forgot password: no active user found for "${identifier}"`);
+      this.logger.warn(`Forgot password: no active user found for "${id}"`);
       return { message: 'If that account exists, a reset link has been sent.' };
     }
 

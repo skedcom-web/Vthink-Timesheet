@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent, type FocusEvent } from 'react';
 import {
   ArrowLeft, ChevronDown, X, UserPlus, Plus, Pencil,
   Filter, AlertTriangle, Calendar,
@@ -84,6 +84,8 @@ export default function AssignTask({
     assignStartDate: '', assignEndDate: '',
     allocationPercentage: 100, roleOnTask: '',
   });
+  /** Free-typed % (empty allowed while editing; avoids number input forcing “0” on clear). */
+  const [allocationInput, setAllocationInput] = useState('100');
 
   // Employee combo state
   const [empName,        setEmpName]        = useState('');
@@ -149,6 +151,44 @@ export default function AssignTask({
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 
+  const allocationBarPct = Math.min(100, Math.max(0, parseInt(allocationInput || '0', 10) || 0));
+
+  const parseAllocationForSubmit = (): number => {
+    const t = allocationInput.trim();
+    if (t === '') return 0;
+    const n = parseInt(t, 10);
+    return Math.min(100, Math.max(0, Number.isNaN(n) ? 0 : n));
+  };
+
+  const onAllocationStringChange = (e: ChangeEvent<HTMLInputElement>) => {
+    let v = e.target.value;
+    if (v === '') {
+      setAllocationInput('');
+      return;
+    }
+    if (!/^\d*$/.test(v)) return;
+    if (v.length > 3) v = v.slice(0, 3);
+    const n = parseInt(v, 10);
+    if (!Number.isNaN(n) && n > 100) v = '100';
+    setAllocationInput(v);
+  };
+
+  const onAllocationStringBlur = () => {
+    const t = allocationInput.trim();
+    if (t === '') {
+      setAllocationInput('0');
+      set('allocationPercentage', 0);
+      return;
+    }
+    const n = Math.min(100, Math.max(0, parseInt(t, 10) || 0));
+    setAllocationInput(String(n));
+    set('allocationPercentage', n);
+  };
+
+  const onAllocationStringFocus = (e: FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.select();
+  };
+
   const selectEmployee = (emp: EmpOption) => {
     setEmpName(emp.name); setEmpNo(emp.employeeNo);
     setEmpDesignation(emp.designation || ''); setEmpEmail(emp.email || '');
@@ -175,6 +215,7 @@ export default function AssignTask({
   const cancelForm = () => {
     setView('list'); setEditAsgn(null);
     setForm({ projectId: '', taskId: '', assignStartDate: '', assignEndDate: '', allocationPercentage: 100, roleOnTask: '' });
+    setAllocationInput('100');
     clearEmployee();
   };
 
@@ -260,6 +301,7 @@ export default function AssignTask({
       }
     }
 
+    const allocationPct = parseAllocationForSubmit();
     setLoading(true);
     try {
       await assignmentsApi.create({
@@ -268,7 +310,7 @@ export default function AssignTask({
         employeeName:         empName    || undefined,
         assignStartDate:      form.assignStartDate,
         assignEndDate:        form.assignEndDate,
-        allocationPercentage: form.allocationPercentage,
+        allocationPercentage: allocationPct,
         roleOnTask:           form.roleOnTask || undefined,
       });
       toast.success('Task assigned successfully');
@@ -286,11 +328,12 @@ export default function AssignTask({
     const taskForValidation = tasks.find(t => t.id === form.taskId) || editAsgn?.task;
     if (!validateAssignmentDates(taskForValidation)) return;
 
+    const allocationPct = parseAllocationForSubmit();
     setLoading(true);
     try {
       await assignmentsApi.update(editAsgn.id, {
         assignEndDate:        form.assignEndDate,
-        allocationPercentage: form.allocationPercentage,
+        allocationPercentage: allocationPct,
         roleOnTask:           form.roleOnTask || undefined,
       });
       toast.success('Assignment updated');
@@ -309,14 +352,16 @@ export default function AssignTask({
       tasksApi.getAll(asgn.task?.project?.id || asgn.task?.projectId)
         .then(setTasks).catch(() => {});
     }
+    const pct = asgn.allocationPercentage ?? 100;
     setForm({
       projectId:            asgn.task?.project?.id || asgn.task?.projectId || '',
       taskId:               asgn.taskId,
       assignStartDate:      asgn.assignStartDate ? asgn.assignStartDate.slice(0, 10) : '',
       assignEndDate:        asgn.assignEndDate    ? asgn.assignEndDate.slice(0, 10)   : '',
-      allocationPercentage: asgn.allocationPercentage || 100,
+      allocationPercentage: pct,
       roleOnTask:           asgn.roleOnTask || '',
     });
+    setAllocationInput(String(pct));
     setView('edit');
   };
 
@@ -442,7 +487,7 @@ export default function AssignTask({
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Task</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Project</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Period</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Alloc</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Allocation</th>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 uppercase text-xs tracking-wide">Status</th>
                 <th className="px-4 py-3 w-10" />
               </tr>
@@ -689,9 +734,19 @@ export default function AssignTask({
 
           <div>
             <label className={lbl}>Allocation % <span className="text-red-500">*</span></label>
-            <input type="number" min={0} max={100} value={form.allocationPercentage} onChange={e => set('allocationPercentage', Number(e.target.value))} className={inp} />
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="0–100"
+              value={allocationInput}
+              onChange={onAllocationStringChange}
+              onBlur={onAllocationStringBlur}
+              onFocus={onAllocationStringFocus}
+              className={inp}
+            />
             <div className="mt-1.5 bg-slate-200 rounded-full h-1.5">
-              <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${form.allocationPercentage}%` }} />
+              <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${allocationBarPct}%` }} />
             </div>
           </div>
           <div>
@@ -705,8 +760,14 @@ export default function AssignTask({
             className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
             {loading ? 'Assigning...' : 'Assign Task'}
           </button>
-          <button onClick={() => { setForm({ projectId: '', taskId: '', assignStartDate: '', assignEndDate: '', allocationPercentage: 100, roleOnTask: '' }); clearEmployee(); }}
-            className="border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2 rounded-lg text-sm transition-colors">
+          <button
+            onClick={() => {
+              setForm({ projectId: '', taskId: '', assignStartDate: '', assignEndDate: '', allocationPercentage: 100, roleOnTask: '' });
+              setAllocationInput('100');
+              clearEmployee();
+            }}
+            className="border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2 rounded-lg text-sm transition-colors"
+          >
             Reset
           </button>
           <button onClick={cancelForm} className="ml-auto border border-slate-200 hover:bg-slate-50 text-slate-500 px-5 py-2 rounded-lg text-sm transition-colors">
@@ -809,9 +870,19 @@ export default function AssignTask({
 
           <div>
             <label className={lbl}>Allocation %</label>
-            <input type="number" min={0} max={100} value={form.allocationPercentage} onChange={e => set('allocationPercentage', Number(e.target.value))} className={inp} />
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="0–100"
+              value={allocationInput}
+              onChange={onAllocationStringChange}
+              onBlur={onAllocationStringBlur}
+              onFocus={onAllocationStringFocus}
+              className={inp}
+            />
             <div className="mt-1.5 bg-slate-200 rounded-full h-1.5">
-              <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${form.allocationPercentage}%` }} />
+              <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${allocationBarPct}%` }} />
             </div>
           </div>
           <div>

@@ -14,15 +14,34 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
+    const ident = (dto.email ?? '').trim();
+    if (!ident) throw new UnauthorizedException('Invalid credentials');
+
     // Support login by email OR employeeId — both case-insensitive
     let user = await this.prisma.user.findFirst({
-      where: { email: { equals: dto.email, mode: 'insensitive' } },
+      where: { email: { equals: ident, mode: 'insensitive' } },
     });
 
     if (!user) {
       user = await this.prisma.user.findFirst({
-        where: { employeeId: { equals: dto.email, mode: 'insensitive' } },
+        where: { employeeId: { equals: ident, mode: 'insensitive' } },
       });
+    }
+
+    // Fallback: org employee number matches employee_configs but User.employeeId was left blank — resolve via config email
+    if (!user) {
+      const rows = await this.prisma.$queryRaw<{ email: string }[]>`
+        SELECT email FROM employee_configs
+        WHERE active = true
+          AND LOWER(TRIM("employeeNo")) = LOWER(${ident})
+        LIMIT 1
+      `;
+      const cfgEmail = rows[0]?.email?.trim();
+      if (cfgEmail) {
+        user = await this.prisma.user.findFirst({
+          where: { email: { equals: cfgEmail, mode: 'insensitive' } },
+        });
+      }
     }
 
     if (!user || !user.active) throw new UnauthorizedException('Invalid credentials');

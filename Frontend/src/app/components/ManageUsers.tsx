@@ -10,9 +10,9 @@ import { toast } from './ui/Toast';
 
 // All possible role options
 const ALL_ROLE_OPTIONS = [
-  { value: 'COMPANY_ADMIN',   label: 'Company Admin',   color: '#2563EB', bg: '#DBEAFE' },
-  { value: 'PROJECT_MANAGER', label: 'Project Manager', color: '#DB2777', bg: '#FCE7F3' },
-  { value: 'TEAM_MEMBER',     label: 'Employee',        color: '#059669', bg: '#D1FAE5' },
+  { value: 'COMPANY_ADMIN',   label: 'Company Admin',   color: 'var(--primary)',              bg: 'var(--primary-tint)' },
+  { value: 'PROJECT_MANAGER', label: 'Project Manager', color: 'var(--vthink-purple)',      bg: 'var(--vthink-purple-soft)' },
+  { value: 'TEAM_MEMBER',     label: 'Employee',        color: 'var(--success)',            bg: 'var(--success-tint)' },
 ];
 
 // Roles each actor can create
@@ -29,10 +29,10 @@ const ROLE_LABEL: Record<string, string> = {
   TEAM_MEMBER:     'Employee',
 };
 const ROLE_COLOR: Record<string, { color: string; bg: string }> = {
-  SUPER_ADMIN:     { color: '#7C3AED', bg: 'var(--primary-tint)' },
-  COMPANY_ADMIN:   { color: '#2563EB', bg: '#DBEAFE' },
-  PROJECT_MANAGER: { color: '#DB2777', bg: '#FCE7F3' },
-  TEAM_MEMBER:     { color: '#059669', bg: '#D1FAE5' },
+  SUPER_ADMIN:     { color: 'var(--vthink-purple)', bg: 'var(--vthink-purple-soft)' },
+  COMPANY_ADMIN:   { color: 'var(--primary)', bg: 'var(--primary-tint)' },
+  PROJECT_MANAGER: { color: 'var(--vthink-purple)', bg: 'var(--vthink-purple-soft)' },
+  TEAM_MEMBER:     { color: 'var(--success)', bg: 'var(--success-tint)' },
 };
 
 interface UserRecord {
@@ -153,10 +153,15 @@ export default function ManageUsers({
 
   // ── Add user ─────────────────────────────────────────────────────────────────
   const handleCreate = async () => {
+    // New attempt: always clear the previous success panel first (validation may fail after).
+    setCreatedResult(null);
+    setShowTempPw(false);
+
     if (!form.name || !form.email || !form.role) {
-      toast.error('Name, Email and Role are required'); return;
+      toast.error('Name, Email and Role are required');
+      return;
     }
-    setSubmitting(true); setCreatedResult(null);
+    setSubmitting(true);
     try {
       const res = await usersApi.create(form);
       setCreatedResult({ name: res.name, tempPassword: res.tempPassword });
@@ -203,12 +208,12 @@ export default function ManageUsers({
     } finally { setResetting(false); }
   };
 
-  const lbl = 'block text-sm font-medium text-slate-700 mb-1';
-  const inp = 'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-slate-50';
+  const lbl = 'block text-sm font-medium text-[var(--text-1)] mb-1';
+  const inp = 'w-full border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-[var(--card-bg)] text-[var(--text-1)]';
 
   return (
     <div className="p-6 max-w-6xl">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-primary hover:text-indigo-800 font-medium mb-4 transition-colors">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-[var(--primary)] hover:opacity-85 font-medium mb-4 transition-opacity">
         <ArrowLeft className="w-4 h-4" /> Back to Overview
       </button>
 
@@ -218,12 +223,12 @@ export default function ManageUsers({
         </div>
         <div>
           <h1 className="text-2xl font-semibold font-bold color-text-1">User Management</h1>
-          <p className="text-gray-500 text-sm">Add users, manage access and reset passwords</p>
+          <p className="text-[var(--text-2)] text-sm">Add users, manage access and reset passwords</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
+      <div className="flex gap-1 tabs-segment-bg p-1 rounded-xl mb-6 w-fit">
         {(['list','add'] as const).map(t => (
           <button key={t} onClick={() => { setTab(t); setCreatedResult(null); }}
             className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
@@ -238,7 +243,7 @@ export default function ManageUsers({
       {tab === 'add' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-6 space-y-4">
-            <h2 className="text-base font-semibold text-slate-800 mb-2">Create New User Account</h2>
+            <h2 className="text-base font-semibold text-[var(--text-1)] mb-2">Create New User Account</h2>
 
             {/* Employee No — dropdown from employee_configs */}
             <div>
@@ -281,9 +286,9 @@ export default function ManageUsers({
                     onClick={() => setForm(f => ({...f, role: r.value}))}
                     className="px-3 py-2.5 rounded-lg text-xs font-semibold border-2 transition-all"
                     style={{
-                      borderColor: form.role === r.value ? r.color : '#E2E8F0',
+                      borderColor: form.role === r.value ? r.color : 'var(--border)',
                       background:  form.role === r.value ? r.bg    : 'var(--page-bg)',
-                      color:       form.role === r.value ? r.color : '#64748B',
+                      color:       form.role === r.value ? r.color : 'var(--text-2)',
                     }}>
                     {r.label}
                   </button>
@@ -294,7 +299,7 @@ export default function ManageUsers({
             {/* Email message — shows default template, admin can customise */}
             <div>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-[var(--text-1)]">
                   Welcome Email Message
                 </label>
                 <button type="button"
@@ -302,7 +307,7 @@ export default function ManageUsers({
                     ...f,
                     customEmailMessage: f.customEmailMessage ? '' : DEFAULT_WELCOME_TEMPLATE(f.name, f.role)
                   }))}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline">
+                  className="text-xs text-[var(--primary)] hover:opacity-85 font-medium underline">
                   {form.customEmailMessage ? 'Clear (use server default)' : 'Preview default template'}
                 </button>
               </div>
@@ -323,7 +328,7 @@ Click "Preview default template" above to see and edit the default message befor
 
             <button onClick={handleCreate} disabled={submitting}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-semibold text-sm transition-all disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg,var(--primary),#7C3AED)' }}>
+              style={{ background: 'linear-gradient(135deg, var(--primary), var(--vthink-purple))' }}>
               {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>
                           : <><UserPlus className="w-4 h-4" /> Create User & Send Email</>}
             </button>
@@ -332,18 +337,21 @@ Click "Preview default template" above to see and edit the default message befor
           {/* Result panel */}
           <div className="space-y-4">
             {createdResult ? (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+              <div className="surface-callout-success rounded-xl p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                  <h3 className="font-semibold text-emerald-800">User Created Successfully</h3>
+                  <CheckCircle2 className="w-5 h-5 text-[var(--success)]" />
+                  <h3 className="font-semibold text-[var(--text-1)]">User Created Successfully</h3>
                 </div>
-                <p className="text-sm text-emerald-700 mb-4">
-                  <strong>{createdResult.name}</strong> has been created. A welcome email with login instructions has been sent.
+                <p className="text-sm text-[var(--text-2)] mb-4">
+                  <strong className="text-[var(--text-1)]">{createdResult.name}</strong> has been created. A welcome email with login instructions has been sent.
                 </p>
-                <div className="bg-[var(--card-bg)] border border-emerald-200 rounded-lg p-4">
-                  <p className="text-xs text-gray-500 mb-1">Temporary Password (also sent via email)</p>
+                <div
+                  className="bg-[var(--card-bg)] rounded-lg p-4 border"
+                  style={{ borderColor: 'color-mix(in srgb, var(--success) 35%, var(--border))' }}
+                >
+                  <p className="text-xs text-[var(--text-3)] mb-1">Temporary Password (also sent via email)</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-base font-bold tracking-widest text-indigo-700 flex-1">
+                    <code className="text-base font-bold tracking-widest text-[var(--primary)] flex-1">
                       {showTempPw ? createdResult.tempPassword : '••••••••'}
                     </code>
                     <button onClick={() => setShowTempPw(v => !v)} className="text-slate-400 hover:text-slate-600">
@@ -355,13 +363,13 @@ Click "Preview default template" above to see and edit the default message befor
                     </button>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400 mt-3">
+                <p className="text-xs text-[var(--text-3)] mt-3">
                   The user must change this password on first login. It expires in 24 hours.
                 </p>
               </div>
             ) : (
-              <div className="bg-slate-50 border border-gray-200 rounded-xl p-6">
-                <h3 className="font-semibold text-slate-700 mb-3">How it works</h3>
+              <div className="surface-muted-panel rounded-xl p-6">
+                <h3 className="font-semibold text-[var(--text-1)] mb-3">How it works</h3>
                 <div className="space-y-3">
                   {[
                     { n:'1', t:'Fill in employee details',   d:'Select from Employee Upload list or enter manually' },
@@ -371,8 +379,8 @@ Click "Preview default template" above to see and edit the default message befor
                     { n:'5', t:'User sets new password',      d:'On first login, user must change their temporary password' },
                   ].map(s => (
                     <div key={s.n} className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{s.n}</div>
-                      <div><p className="text-sm font-medium text-slate-700">{s.t}</p><p className="text-xs text-slate-400">{s.d}</p></div>
+                      <div className="w-6 h-6 rounded-full surface-icon-btn text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{s.n}</div>
+                      <div><p className="text-sm font-medium text-[var(--text-1)]">{s.t}</p><p className="text-xs text-[var(--text-3)]">{s.d}</p></div>
                     </div>
                   ))}
                 </div>
@@ -386,15 +394,15 @@ Click "Preview default template" above to see and edit the default message befor
       {tab === 'list' && (
         <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl overflow-hidden">
           {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-5 py-4 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-5 py-4 border-b border-[var(--border)]">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search name, email or employee ID…"
-                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary" />
+                className="w-full pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-lg bg-[var(--card-bg)] text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
+              className="border border-[var(--border)] rounded-lg px-3 py-2 text-sm bg-[var(--card-bg)] text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-primary">
               <option value="">All Roles</option>
               {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               <option value="SUPER_ADMIN">Super Admin</option>
@@ -406,7 +414,7 @@ Click "Preview default template" above to see and edit the default message befor
           </div>
 
           {/* Table header */}
-          <div className="grid grid-cols-12 px-5 py-2 bg-slate-50 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+          <div className="grid grid-cols-12 px-5 py-2 tabs-segment-bg text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide">
             <div className="col-span-3">Name / Emp ID</div>
             <div className="col-span-3">Email</div>
             <div className="col-span-2">Role</div>
@@ -424,11 +432,11 @@ Click "Preview default template" above to see and edit the default message befor
               <p className="text-sm">{search || roleFilter ? 'No users match your filter' : 'No users yet'}</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-[var(--border)]">
               {filtered.map(u => {
                 const rc = ROLE_COLOR[u.role] || ROLE_COLOR.TEAM_MEMBER;
                 return (
-                  <div key={u.id} className="grid grid-cols-12 px-5 py-3 items-center hover:bg-slate-50 transition-colors">
+                  <div key={u.id} className="grid grid-cols-12 px-5 py-3 items-center hover:bg-[var(--nav-hover-bg)] transition-colors">
                     <div className="col-span-3">
                       <p className="text-sm font-semibold text-slate-800">{u.name}</p>
                       <p className="text-xs text-slate-400">{u.employeeId || '—'}</p>
@@ -446,13 +454,13 @@ Click "Preview default template" above to see and edit the default message befor
                     <div className="col-span-2">
                       <div className="flex flex-col gap-1">
                         <span className="flex items-center gap-1 text-xs font-medium"
-                          style={{ color: u.active ? '#059669' : '#DC2626' }}>
+                          style={{ color: u.active ? 'var(--success)' : 'var(--danger)' }}>
                           {u.active
                             ? <><CheckCircle2 className="w-3 h-3" />Active</>
                             : <><AlertCircle  className="w-3 h-3" />Revoked</>}
                         </span>
                         {u.mustChangePassword && (
-                          <span className="text-xs text-amber-600 flex items-center gap-1">
+                          <span className="text-xs text-[var(--warning)] flex items-center gap-1">
                             <KeyRound className="w-3 h-3" />Temp pw
                           </span>
                         )}
@@ -463,7 +471,7 @@ Click "Preview default template" above to see and edit the default message befor
                       {u.active && u.role !== 'SUPER_ADMIN' && (
                         <button onClick={() => { setResetTarget(u); setResetResult(null); setResetMsg(''); }}
                           title="Reset Password"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors">
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[var(--warning)] hover:bg-[var(--warning-tint)] transition-colors">
                           <KeyRound className="w-4 h-4" />
                         </button>
                       )}
@@ -471,11 +479,11 @@ Click "Preview default template" above to see and edit the default message befor
                       {u.role !== 'SUPER_ADMIN' && (
                         u.active
                           ? <button onClick={() => handleRevoke(u)} title="Revoke Access"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-[var(--danger)] hover:bg-[var(--danger-tint)] transition-colors">
                               <ShieldOff className="w-4 h-4" />
                             </button>
                           : <button onClick={() => handleRestore(u)} title="Restore Access"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors">
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-[var(--success)] hover:bg-[var(--success-tint)] transition-colors">
                               <ShieldCheck className="w-4 h-4" />
                             </button>
                       )}
@@ -495,8 +503,8 @@ Click "Preview default template" above to see and edit the default message befor
           <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl w-full max-w-md p-6 border border-[var(--border)]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <KeyRound className="w-5 h-5 text-amber-600" />
-                <h3 className="font-semibold text-slate-800">Reset Password</h3>
+                <KeyRound className="w-5 h-5 text-[var(--warning)]" />
+                <h3 className="font-semibold text-[var(--text-1)]">Reset Password</h3>
               </div>
               <button onClick={() => { setResetTarget(null); setResetResult(null); }}
                 className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
@@ -504,38 +512,41 @@ Click "Preview default template" above to see and edit the default message befor
 
             {!resetResult ? (
               <>
-                <p className="text-sm text-slate-600 mb-4">
-                  Reset password for <strong>{resetTarget.name}</strong> ({resetTarget.email}).
+                <p className="text-sm text-[var(--text-2)] mb-4">
+                  Reset password for <strong className="text-[var(--text-1)]">{resetTarget.name}</strong> ({resetTarget.email}).
                   A new temporary password will be generated and emailed.
                 </p>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Custom email message <span className="text-slate-400 font-normal">(optional)</span>
+                  <label className="block text-sm font-medium text-[var(--text-1)] mb-1">
+                    Custom email message <span className="text-[var(--text-3)] font-normal">(optional)</span>
                   </label>
                   <textarea value={resetMsg} onChange={e => setResetMsg(e.target.value)}
                     rows={3} placeholder="Leave blank to use the default reset message…"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
+                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm bg-[var(--card-bg)] text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
                 </div>
                 <div className="flex gap-3">
                   <button onClick={handleReset} disabled={resetting}
                     className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-medium text-sm disabled:opacity-50"
-                    style={{ background: '#F59E0B' }}>
+                    style={{ background: 'var(--warning)' }}>
                     {resetting ? <><Loader2 className="w-4 h-4 animate-spin" />Resetting…</>
                                : <><KeyRound className="w-4 h-4" />Reset & Send Email</>}
                   </button>
                   <button onClick={() => setResetTarget(null)}
-                    className="px-4 py-2.5 rounded-lg border border-gray-200 text-slate-600 text-sm hover:bg-slate-50">
+                    className="px-4 py-2.5 rounded-lg border border-[var(--border)] text-[var(--text-2)] text-sm hover:bg-[var(--nav-hover-bg)]">
                     Cancel
                   </button>
                 </div>
               </>
             ) : (
               <div>
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-                  <p className="text-sm text-emerald-700 font-medium mb-2">Password reset successfully!</p>
-                  <p className="text-xs text-emerald-600 mb-3">New temporary password (also emailed):</p>
-                  <div className="flex items-center gap-2 bg-[var(--card-bg)] border border-emerald-200 rounded-lg px-3 py-2">
-                    <code className="font-bold tracking-widest text-indigo-700 flex-1 text-sm">
+                <div className="surface-callout-success rounded-xl p-4 mb-4">
+                  <p className="text-sm font-medium text-[var(--text-1)] mb-2">Password reset successfully!</p>
+                  <p className="text-xs text-[var(--text-2)] mb-3">New temporary password (also emailed):</p>
+                  <div
+                    className="flex items-center gap-2 bg-[var(--card-bg)] rounded-lg px-3 py-2 border"
+                    style={{ borderColor: 'color-mix(in srgb, var(--success) 35%, var(--border))' }}
+                  >
+                    <code className="font-bold tracking-widest text-[var(--primary)] flex-1 text-sm">
                       {showTempPw ? resetResult : '••••••••'}
                     </code>
                     <button onClick={() => setShowTempPw(v => !v)} className="text-slate-400 hover:text-slate-600">
@@ -548,7 +559,7 @@ Click "Preview default template" above to see and edit the default message befor
                   </div>
                 </div>
                 <button onClick={() => { setResetTarget(null); setResetResult(null); setShowTempPw(false); }}
-                  className="w-full py-2.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition-colors">
+                  className="w-full py-2.5 rounded-lg tabs-segment-bg text-[var(--text-1)] text-sm font-medium hover:opacity-90 border border-[var(--border)] transition-opacity">
                   Close
                 </button>
               </div>

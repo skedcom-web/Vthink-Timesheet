@@ -156,10 +156,12 @@ export default function Login() {
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const doLogin = async () => {
-    if (!identifier || !password) { setError('Please enter your Employee ID / Email and password.'); return; }
+    const id = identifier.trim();
+    const pw = password.trim();
+    if (!id || !pw) { setError('Please enter your Employee ID / Email and password.'); return; }
     setLoading(true); setError('');
     try {
-      const data = await authApi.login(identifier, password);
+      const data = await authApi.login(id, pw);
       if (!data?.accessToken || !data?.user) { setError('Unexpected response from server. Please try again.'); return; }
       setAuth(data.user, data.accessToken, data.mustChangePassword ?? false);
     } catch (err: any) {
@@ -225,8 +227,12 @@ export default function Login() {
               <input type="text" value={identifier} onChange={e => setIdentifier(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doLogin()}
                 placeholder="VT001 or you@vthink.co.in"
-                className="input" style={{ paddingLeft:38 }} />
+                className="input" style={{ paddingLeft:38 }} autoComplete="username"
+              />
             </div>
+            <p style={{ fontSize:11, color:'var(--text-3)', marginTop:6, lineHeight:1.4 }}>
+              First-time login: use the <strong>full email</strong> from your welcome message if Employee ID does not work. When pasting a temporary password, check that no extra space was copied at the start or end.
+            </p>
           </div>
           <div style={{ marginBottom:24 }}>
             <div style={{ marginBottom:6 }}>
@@ -303,8 +309,8 @@ export default function Login() {
             </>
           ) : (
             <div style={{ textAlign:'center', padding:'8px 0' }}>
-              <div style={{ width:56, height:56, borderRadius:'50%', background:'#F0FDF4', border:'2px solid #86EFAC', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
-                <CheckCircle2 style={{ width:28, height:28, color:'#16A34A' }} />
+              <div style={{ width:56, height:56, borderRadius:'50%', background:'var(--success-tint)', border:'2px solid color-mix(in srgb, var(--success) 45%, var(--border))', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+                <CheckCircle2 style={{ width:28, height:28, color:'var(--success)' }} />
               </div>
               <h2 style={{ fontSize:20, fontWeight:600, color:'var(--text-1)', margin:'0 0 8px' }}>Check your email</h2>
               <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 6px', lineHeight:1.6 }}>
@@ -387,8 +393,8 @@ export default function Login() {
       <LeftPanel />
       <RightShell>
         <div style={{ ...cardStyle, textAlign:'center' }}>
-          <div style={{ width:56, height:56, borderRadius:'50%', background:'#F0FDF4', border:'2px solid #86EFAC', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
-            <CheckCircle2 style={{ width:28, height:28, color:'#16A34A' }} />
+          <div style={{ width:56, height:56, borderRadius:'50%', background:'var(--success-tint)', border:'2px solid color-mix(in srgb, var(--success) 45%, var(--border))', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+            <CheckCircle2 style={{ width:28, height:28, color:'var(--success)' }} />
           </div>
           <h2 style={{ fontSize:20, fontWeight:600, color:'var(--text-1)', margin:'0 0 8px' }}>Password updated!</h2>
           <p style={{ fontSize:13, color:'var(--text-2)', margin:'0 0 24px', lineHeight:1.6 }}>

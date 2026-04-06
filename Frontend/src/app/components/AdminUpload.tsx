@@ -210,35 +210,26 @@ function UploadCard({
       {/* Title row with Download Template button */}
       <div className="flex items-start justify-between gap-4 mb-1">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-base font-semibold text-slate-800">{title}</h2>
+          <FileSpreadsheet className="w-5 h-5 text-[var(--primary)]" />
+          <h2 className="text-base font-semibold text-[var(--text-1)]">{title}</h2>
         </div>
-        <button
-          onClick={onDownloadTemplate}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all hover:shadow-sm shrink-0"
-          style={{
-            background:  '#F0FDF4',
-            borderColor: '#86EFAC',
-            color:       '#16A34A',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background   = '#DCFCE7';
-            e.currentTarget.style.borderColor  = '#4ADE80';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background   = '#F0FDF4';
-            e.currentTarget.style.borderColor  = '#86EFAC';
-          }}
-        >
+        <button type="button" onClick={onDownloadTemplate} className="btn-template-download shrink-0">
           <Download className="w-3.5 h-3.5" />
           {templateLabel}
         </button>
       </div>
 
-      <p className="text-sm text-slate-500 mb-4">{subtitle}</p>
+      <p className="text-sm text-[var(--text-2)] mb-4">{subtitle}</p>
 
       {/* Format hint */}
-      <div className="mb-4 p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-xs text-indigo-700">
+      <div
+        className="mb-4 p-3 rounded-lg border text-xs"
+        style={{
+          background: 'var(--primary-tint)',
+          borderColor: 'color-mix(in srgb, var(--primary) 28%, var(--border))',
+          color: 'var(--primary)',
+        }}
+      >
         {hint}
       </div>
 
@@ -261,8 +252,8 @@ function UploadCard({
         />
         {selectedFile ? (
           <div className="flex flex-col items-center gap-2">
-            <FileSpreadsheet className="w-8 h-8 text-indigo-500" />
-            <p className="text-sm font-semibold text-slate-800">{selectedFile.name}</p>
+            <FileSpreadsheet className="w-8 h-8 text-[var(--primary)]" />
+            <p className="text-sm font-semibold text-[var(--text-1)]">{selectedFile.name}</p>
             <p className="text-xs text-slate-400">{(selectedFile.size / 1024).toFixed(1)} KB · Click to change</p>
             <button
               onClick={e => {
@@ -277,9 +268,9 @@ function UploadCard({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
-            <CloudUpload className="w-8 h-8 text-slate-300" />
-            <p className="text-sm font-medium text-slate-600">
-              <span className="text-indigo-600 font-semibold">Click to browse</span> or drag & drop
+            <CloudUpload className="w-8 h-8 text-[var(--text-3)]" />
+            <p className="text-sm font-medium text-[var(--text-2)]">
+              <span className="text-[var(--primary)] font-semibold">Click to browse</span> or drag & drop
             </p>
             <p className="text-xs text-slate-400">.xlsx or .xls · Max 10 MB</p>
           </div>
@@ -291,7 +282,7 @@ function UploadCard({
         onClick={handleUpload}
         disabled={!selectedFile || uploadState === 'uploading'}
         className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ background: selectedFile ? '#4F46E5' : '#94A3B8' }}
+        style={{ background: selectedFile ? 'var(--primary)' : 'var(--text-3)' }}
       >
         {uploadState === 'uploading'
           ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
@@ -299,14 +290,14 @@ function UploadCard({
       </button>
 
       {uploadState === 'success' && (
-        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
-          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg text-sm surface-callout-success">
+          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-[var(--success)]" />
           <span>{uploadMsg}</span>
         </div>
       )}
       {uploadState === 'error' && (
-        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="mt-3 flex items-start gap-2 p-3 rounded-lg text-sm surface-callout-danger">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[var(--danger)]" />
           <span>{uploadMsg}</span>
         </div>
       )}
@@ -362,13 +353,13 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
   return (
     <div className="p-6 max-w-5xl space-y-8">
       {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-[var(--primary)] hover:opacity-85 font-medium transition-opacity">
         <ArrowLeft className="w-4 h-4" /> Back to Overview
       </button>
 
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Admin — Data Uploads</h1>
-        <p className="text-slate-500 text-sm">
+        <h1 className="text-2xl font-semibold text-[var(--text-1)] mb-1">Admin — Data Uploads</h1>
+        <p className="text-[var(--text-2)] text-sm">
           Download a template, fill in your data, and upload it to populate projects, tasks and employees.
         </p>
       </div>
@@ -380,11 +371,11 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
         <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-indigo-600" />
+              <div className="w-9 h-9 rounded-lg surface-icon-btn flex items-center justify-center">
+                <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800">Imported Projects</p>
+                <p className="text-sm font-semibold text-[var(--text-1)]">Imported Projects</p>
                 <p className="text-xs text-slate-400">via Project Addition Upload</p>
               </div>
             </div>
@@ -392,7 +383,7 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
               onClick={fetchSummaries}
               disabled={loadingSummary}
               title="Refresh"
-              className="text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-40"
+              className="text-slate-400 hover:text-[var(--primary)] transition-colors disabled:opacity-40"
             >
               <RefreshCw className={`w-4 h-4 ${loadingSummary ? 'animate-spin' : ''}`} />
             </button>
@@ -430,11 +421,11 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
         <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
-                <Users className="w-5 h-5 text-emerald-600" />
+              <div className="w-9 h-9 rounded-lg surface-icon-btn-success flex items-center justify-center">
+                <Users className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800">Imported Employees</p>
+                <p className="text-sm font-semibold text-[var(--text-1)]">Imported Employees</p>
                 <p className="text-xs text-slate-400">via Employee Addition Upload</p>
               </div>
             </div>
@@ -446,9 +437,9 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
             </div>
           ) : empSummary && empSummary.total > 0 ? (
             <div className="space-y-3">
-              <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-700">{empSummary.total}</p>
-                <p className="text-xs text-emerald-500 mt-0.5 flex items-center justify-center gap-1">
+              <div className="surface-stat-emerald rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold stat-value">{empSummary.total}</p>
+                <p className="text-xs stat-label mt-0.5 flex items-center justify-center gap-1">
                   <Users className="w-3 h-3" /> Total Employees
                 </p>
               </div>
@@ -462,7 +453,14 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
                           <Briefcase className="w-3 h-3 text-slate-400 shrink-0" />
                           <span className="text-xs text-slate-600 truncate">{d.designation}</span>
                         </div>
-                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                        <span
+                          className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 border"
+                          style={{
+                            color: 'var(--success)',
+                            background: 'var(--success-tint)',
+                            borderColor: 'color-mix(in srgb, var(--success) 40%, var(--border))',
+                          }}
+                        >
                           {d.count}
                         </span>
                       </div>
@@ -488,13 +486,13 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
         hint={
           <>
             <strong>Required columns:</strong>&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Project Name</span>
+            <span className="font-mono pill-code">Project Name</span>
             &nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Client</span>
+            <span className="font-mono pill-code">Client</span>
             &nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Description</span>
+            <span className="font-mono pill-code">Description</span>
             &nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Task Types</span>
+            <span className="font-mono pill-code">Task Types</span>
             &nbsp;(pipe-separated: <em>Task A | Task B | Task C</em>)
           </>
         }
@@ -510,16 +508,16 @@ export default function AdminUpload({ onBack, onDataChanged }: { onBack: () => v
         hint={
           <>
             <strong>Required columns:</strong>&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Number</span>
+            <span className="font-mono pill-code">Employee Number</span>
             &nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Employee Name</span>
+            <span className="font-mono pill-code">Employee Name</span>
             &nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Designation</span>
+            <span className="font-mono pill-code">Designation</span>
             &nbsp;·&nbsp;
-            <span className="font-mono bg-indigo-100 px-1 rounded">Email</span>
+            <span className="font-mono pill-code">Email</span>
             &nbsp;·&nbsp;
-            <span className="font-mono bg-amber-100 px-1 rounded text-amber-800">Manager Employee No</span>
-            &nbsp;<span className="text-indigo-500 text-xs">(new — enter manager\'s Employee Number; leave blank for top-level managers)</span>
+            <span className="font-mono pill-code-warn">Manager Employee No</span>
+            &nbsp;<span className="text-[var(--primary)] text-xs opacity-90">(new — enter manager&apos;s Employee Number; leave blank for top-level managers)</span>
           </>
         }
         onUpload={handleEmployeeUpload}
